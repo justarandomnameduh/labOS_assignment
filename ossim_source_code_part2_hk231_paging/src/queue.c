@@ -28,9 +28,9 @@ struct pcb_t * dequeue(struct queue_t * q) {
                 }
         }
         if(swap_index != q->size - 1){
-                (q->proc)[swap_index] = (q->proc)[size-1];
-                (q->proc)[size-1] = tmp;
+                (q->proc)[swap_index] = (q->proc)[q->size-1];
+                (q->proc)[q->size-1] = tmp;
         }
-        size--;
-        return (q->proc)[size];
+        q->size--;
+        return (q->proc)[q->size];
 }
