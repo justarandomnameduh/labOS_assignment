@@ -22,7 +22,7 @@ struct pcb_t * dequeue(struct queue_t * q) {
         struct pcb_t* tmp = (q->proc)[0];
         int swap_index = -1;
         for(int i = 0; i < q->size; i++){
-                if(tmp->priority > (q->proc)[i]->priority){
+                if(tmp->priority < (q->proc)[i]->priority){
                         swap_index = i;
                         tmp = (q->proc)[i];
                 }
