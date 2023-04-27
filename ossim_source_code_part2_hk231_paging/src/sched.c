@@ -49,7 +49,7 @@ struct pcb_t * get_mlq_proc(void) {
 	 * */
 	pthread_mutex_lock(queue_lock);
 	int prio;
-	for (prio = 0; prio < MAX_PRIO; prio++)
+	for (prio = MAX_PRIO; prio < 0; prio++)
 		if(!empty(&mlq_ready_queue[prio])) {
 			proc = dequeue(&mlq_ready_queue[prio]);
 			break;

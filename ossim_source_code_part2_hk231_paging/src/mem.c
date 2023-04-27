@@ -1,5 +1,4 @@
-
-#include "mem.h"
+#include "include\mem.h"
 #include "stdlib.h"
 #include "string.h"
 #include <pthread.h>
@@ -114,6 +113,13 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 		 * 	- Add entries to segment table page tables of [proc]
 		 * 	  to ensure accesses to allocated memory slot is
 		 * 	  valid. */
+		// TODO
+	}
+	else{
+		/* In case of no suitable space, we need to lift up the 
+		 * barrier sbrk, which may need some physical frames and
+		 * then mapped with Page Table Entry*/
+		// TODO
 	}
 	pthread_mutex_unlock(&mem_lock);
 	return ret_mem;
@@ -121,6 +127,8 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 
 int free_mem(addr_t address, struct pcb_t * proc) {
 	/* DO NOTHING HERE. This mem is obsoleted */
+	/* Keep free list for further alloc request*/
+	// TODO maybe...
 	return 0;
 }
 
