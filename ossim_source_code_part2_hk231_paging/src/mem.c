@@ -12,7 +12,7 @@ static struct {
 			// to the process.
 	int next;	// The next page in the list. -1 if it is the last
 			// page.
-} _mem_stat [NUM_PAGES];
+} _mem_stat [NUM_PAGES]; // Page struct
 
 static pthread_mutex_t mem_lock;
 
@@ -102,6 +102,8 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 	 * to know whether this page has been used by a process.
 	 * For virtual memory space, check bp (break pointer).
 	 * */
+	// TODO
+	
 	
 	if (mem_avail) {
 		/* We could allocate new memory region to the process */
@@ -118,7 +120,7 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 	else{
 		/* In case of no suitable space, we need to lift up the 
 		 * barrier sbrk, which may need some physical frames and
-		 * then mapped with Page Table Entry*/
+		 * then mapped with Page Table Entry. */
 		// TODO
 	}
 	pthread_mutex_unlock(&mem_lock);
@@ -127,7 +129,7 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 
 int free_mem(addr_t address, struct pcb_t * proc) {
 	/* DO NOTHING HERE. This mem is obsoleted */
-	/* Keep free list for further alloc request*/
+	/* Keep free list for further alloc request */
 	// TODO maybe...
 	return 0;
 }
