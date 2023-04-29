@@ -47,6 +47,8 @@ static struct trans_table_t * get_trans_table(
 	int i;
 	for (i = 0; i < page_table->size; i++) {
 		// Enter your code here
+		if(page_table->table[i].v_index == index)
+			return page_table->table[i].next_lv;
 	}
 	return NULL;
 
@@ -79,6 +81,8 @@ static int translate(
 	for (i = 0; i < trans_table->size; i++) {
 		if (trans_table->table[i].v_index == second_lv) {
 			/* DO NOTHING HERE. This mem is obsoleted */
+			/* Edited */
+			physical_addr = trans_table->table[i].p_index * PAGE_SIZE + offset;
 			return 1;
 		}
 	}
@@ -103,7 +107,19 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 	 * For virtual memory space, check bp (break pointer).
 	 * */
 	// TODO
-
+	int i;
+	int num_avail_pages = 0;
+	for (i = 0; i < NUM_PAGES; i++) {
+		if(_mem_stat[i].proc == 0) {
+			num_avail_pages++;
+			if (num_avail_pages == num_pages &&	// collect enough required free page
+				proc->bp + num_pages * PAGE_SIZE <= RAM_SIZE) {
+				// the boundary must be smaller than RAM_SIZE
+					mem_avail = 1;
+					break;
+				}
+		}
+	}
 
 	if (mem_avail) {
 		/* We could allocate new memory region to the process */

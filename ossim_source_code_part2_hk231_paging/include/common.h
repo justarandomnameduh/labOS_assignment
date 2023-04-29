@@ -49,7 +49,7 @@ struct trans_table_t {
 	struct  {
 		addr_t v_index; // The index of virtual address
 		addr_t p_index; // The index of physical address
-	} table[1 << SECOND_LV_LEN];
+	} table[1 << SECOND_LV_LEN]; // 32
 	int size;
 }; // Can understand as a page containing "size" items,
 // Each of the item contain a pair (v_index, p_index)
@@ -61,7 +61,7 @@ struct page_table_t {
 	struct {
 		addr_t v_index;	// Virtual index
 		struct trans_table_t * next_lv;
-	} table[1 << FIRST_LV_LEN];
+	} table[1 << FIRST_LV_LEN]; // 32
 	int size;	// Number of row in the first layer
 }; // Can be understand as a segment table containing "size" pages,
 // Each page containing a segment value "v_index" and a pointer
