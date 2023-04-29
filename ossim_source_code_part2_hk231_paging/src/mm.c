@@ -80,33 +80,42 @@ int pte_set_fpn(uint32_t *pte, int fpn)
  * vmap_page_range - map a range of page at aligned address
  */
 int vmap_page_range(struct pcb_t *caller, // process call
-                                int addr, // start address which is aligned to pagesz
-                               int pgnum, // num of mapping page
-           struct framephy_struct *frames,// list of the mapped frames
-              struct vm_rg_struct *ret_rg)// return mapped region, the real mapped fp
-{                                         // no guarantee all given pages are mapped
-  //uint32_t * pte = malloc(sizeof(uint32_t));
+                    int addr, // start address which is aligned to pagesz
+                    int pgnum, // num of mapping page
+                    struct framephy_struct *frames,// list of the mapped frames
+                    struct vm_rg_struct *ret_rg)// return mapped region, the real mapped fp
+{
   struct framephy_struct *fpit = malloc(sizeof(struct framephy_struct));
-  //int  fpn;
   int pgit = 0;
   int pgn = PAGING_PGN(addr);
 
-  ret_rg->rg_end = ret_rg->rg_start = addr; // at least the very first space is usable
+  ret_rg->rg_end = ret_rg->rg_start = addr;
 
   fpit->fp_next = frames;
 
-  /* TODO map range of frame to address space 
-   *      [addr to addr + pgnum*PAGING_PAGESZ
-   *      in page table caller->mm->pgd[]
-   */
+  /* map range of frame to address space */
+  while (pgit < pgnum) {
+    uint32_t *pte = get_pte_for_addr(caller->mm, addr + pgit * PAGING_PAGESZ, /*create*/1);
+    if (!pte) {
+      // Couldn't allocate PTE, so return error
+      return -1;
+    }
+    uint32_t pte_val = FP_TO_PFN(fpit->fp_paddr) | PAGING_PRESENT | PAGING_WRITABLE | PAGING_USER;
+    *pte = pte_val;
 
-   /* Tracking for later page replacement activities (if needed)
-    * Enqueue new usage page */
-   enlist_pgn_node(&caller->mm->fifo_pgn, pgn+pgit);
+    ret_rg->rg_end += PAGING_PAGESZ;
 
+    fpit = fpit->fp_next;
+    pgit++;
+
+    /* Tracking for later page replacement activities (if needed)
+     * Enqueue new usage page */
+    enlist_pgn_node(&caller->mm->fifo_pgn, pgn+pgit);
+  }
 
   return 0;
 }
+
 
 /* 
  * alloc_pages_range - allocate req_pgnum of frame in ram
