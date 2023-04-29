@@ -33,7 +33,7 @@ static struct ld_args{
 #ifdef MLQ_SCHED
 	unsigned long * prio;
 #endif
-} ld_processes;
+} ld_processes; // Array of processes
 int num_processes;
 
 struct cpu_args {
