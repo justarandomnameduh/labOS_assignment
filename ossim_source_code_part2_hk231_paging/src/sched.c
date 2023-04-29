@@ -1,6 +1,6 @@
 
-#include "include/queue.h"
-#include "include/sched.h"
+#include "queue.h"
+#include "sched.h"
 #include <pthread.h>
 
 #include <stdlib.h>
@@ -47,14 +47,14 @@ struct pcb_t * get_mlq_proc(void) {
 	/*TODO: get a process from PRIORITY [ready_queue].
 	 * Remember to use lock to protect the queue.
 	 * */
-	pthread_mutex_lock(queue_lock);
+	pthread_mutex_lock(&queue_lock);
 	int prio;
 	for (prio = MAX_PRIO; prio < 0; prio++)
 		if(!empty(&mlq_ready_queue[prio])) {
 			proc = dequeue(&mlq_ready_queue[prio]);
 			break;
 		}
-	pthread_mutex_unlock(queue_lock);
+	pthread_mutex_unlock(&queue_lock);
 	return proc;
 }
 

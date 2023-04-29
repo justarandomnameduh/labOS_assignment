@@ -1,5 +1,5 @@
 
-#include "include/timer.h"
+#include "timer.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -43,7 +43,7 @@ static void * timer_routine(void * args) {
 
 		/* Increase the time slot */
 		_time++;
-		
+
 		/* Let devices continue their job */
 		for (temp = dev_list; temp != NULL; temp = temp->next) {
 			pthread_mutex_lock(&temp->id.timer_lock);
@@ -98,7 +98,7 @@ struct timer_id_t * attach_event() {
 	}else{
 		struct timer_id_container_t * container =
 			(struct timer_id_container_t*)malloc(
-				sizeof(struct timer_id_container_t)		
+				sizeof(struct timer_id_container_t)
 			);
 		container->id.done = 0;
 		container->id.fsh = 0;
@@ -130,7 +130,3 @@ void stop_timer() {
 		free(temp);
 	}
 }
-
-
-
-

@@ -1,7 +1,7 @@
 
-#include "include/mem.h"
-#include "include/cpu.h"
-#include "include/loader.h"
+#include "mem.h"
+#include "cpu.h"
+#include "loader.h"
 #include <stdio.h>
 
 int main() {
@@ -15,4 +15,3 @@ int main() {
 	dump();
 	return 0;
 }
-

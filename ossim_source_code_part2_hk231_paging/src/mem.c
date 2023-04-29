@@ -1,4 +1,4 @@
-#include "include\mem.h"
+#include "mem.h"
 #include "stdlib.h"
 #include "string.h"
 #include <pthread.h>
@@ -41,7 +41,7 @@ static addr_t get_second_lv(addr_t addr) {
 static struct trans_table_t * get_trans_table(
 		addr_t index, 	// Segment level index
 		struct page_table_t * page_table) { // first level table
-	
+
 	/* DO NOTHING HERE. This mem is obsoleted */
 
 	int i;
@@ -67,7 +67,7 @@ static int translate(
 	addr_t first_lv = get_first_lv(virtual_addr);
 	/* The second layer index */
 	addr_t second_lv = get_second_lv(virtual_addr);
-	
+
 	/* Search in the first level */
 	struct trans_table_t * trans_table = NULL;
 	trans_table = get_trans_table(first_lv, proc->page_table);
@@ -82,7 +82,7 @@ static int translate(
 			return 1;
 		}
 	}
-	return 0;	
+	return 0;
 }
 
 addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
@@ -96,15 +96,15 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 
 	/* First we must check if the amount of free memory in
 	 * virtual address space and physical address space is
-	 * large enough to represent the amount of required 
+	 * large enough to represent the amount of required
 	 * memory. If so, set 1 to [mem_avail].
 	 * Hint: check [proc] bit in each page of _mem_stat
 	 * to know whether this page has been used by a process.
 	 * For virtual memory space, check bp (break pointer).
 	 * */
 	// TODO
-	
-	
+
+
 	if (mem_avail) {
 		/* We could allocate new memory region to the process */
 		ret_mem = proc->bp;
@@ -118,7 +118,7 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 		// TODO
 	}
 	else{
-		/* In case of no suitable space, we need to lift up the 
+		/* In case of no suitable space, we need to lift up the
 		 * barrier sbrk, which may need some physical frames and
 		 * then mapped with Page Table Entry. */
 		// TODO
@@ -170,14 +170,12 @@ void dump(void) {
 			for (	j = i << OFFSET_LEN;
 				j < ((i+1) << OFFSET_LEN) - 1;
 				j++) {
-				
+
 				if (_ram[j] != 0) {
 					printf("\t%05x: %02x\n", j, _ram[j]);
 				}
-					
+
 			}
 		}
 	}
 }
-
-
