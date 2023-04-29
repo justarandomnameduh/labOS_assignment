@@ -12,7 +12,7 @@ static struct {
 			// to the process.
 	int next;	// The next page in the list. -1 if it is the last
 			// page.
-} _mem_stat [NUM_PAGES]; // Page struct
+} _mem_stat [NUM_PAGES];
 
 static pthread_mutex_t mem_lock;
 
