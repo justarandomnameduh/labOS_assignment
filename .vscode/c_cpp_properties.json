@@ -4,7 +4,7 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "C:\\Users\\HP\\Documents\\GitHub\\labOS_assignment\\ossim_source_code_part2_hk231_paging\\include"
+                "C:\\Users\\nqmti\\OneDrive\\Documents\\GitHub\\labOS_assignment\\ossim_source_code_part2_hk231_paging\\include"
             ],
             "defines": [
                 "_DEBUG",

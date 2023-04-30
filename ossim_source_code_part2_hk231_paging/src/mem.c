@@ -89,6 +89,15 @@ static int translate(
 	return 0;
 }
 
+/* This function allocate [size] byte of memory to the given process [proc]
+ * and return the address of the first byte in the allocated memory region.
+ * Params:
+ * 		@size: size of memory to be allocated (in bytes)
+ * 		@proc: pointer to the process for which memory is being allocated
+ * Returns:
+ * 		@ret_mem: address of the first byte in the allocated memory region,
+ * 		if memory is insufficient, return 0 instead. 
+ * */
 addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 	pthread_mutex_lock(&mem_lock);
 	addr_t ret_mem = 0;
@@ -132,43 +141,68 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 		 * 	  to ensure accesses to allocated memory slot is
 		 * 	  valid. */
 		// TODO
-		int num_alloc_pages = 0;
+		int num_alloc_pages = 0;	
 		int prev_page_id;
 		addr_t cur_v_addr;
 		int trans_id, page_id;
-		struct page_table_t * page_table;
-		struct trans_table_t * current_page_table;
+		struct page_table_t * proc_page_table;	// a table of trans_table
+		struct trans_table_t * trans_table; // a table of phys-virt address pairs
 		for(i = 0; i < NUM_PAGES; i++) {
 			// Iterate through list of pages to assign free page
 			// to current process
 			if(_mem_stat[i].proc == 0) { // haven't assign by any proc
 				_mem_stat[i].proc = proc->pid;
 				_mem_stat[i].index = num_alloc_pages;
-				if(_mem_stat[i].index != 0) // Not the first page, linked from previous page
+				if(_mem_stat[i].index != 0) // Not the first page, so linked from previous page
 					_mem_stat[prev_page_id].next = i;
 				prev_page_id = i;
 				int found = 0;
-				page_table = proc->page_table;
-				if(page_table->table[0].next_lv == NULL) // page table with no trans_table
-					page_table->size = 0;
+				// Search for paging entry if already exist in the page table
+				proc_page_table = proc->page_table;
+				if(proc_page_table->table[0].next_lv == NULL) // page table with no trans_table
+					proc_page_table->size = 0;
 				cur_v_addr = ret_mem + (num_alloc_pages << OFFSET_LEN);
 				page_id = get_first_lv(cur_v_addr);
 				trans_id = get_second_lv(cur_v_addr);
-				for(j = 0; j < page_table->size; j++)
-					if(page_table->table[j].v_index == page_id) {
-						// 
-						current_page_table = page_table->table[j].next_lv;
-						current_page_table->table[current_page_table->size].v_index = trans_id;
-						current_page_table->table[current_page_table->size].p_index = i;
+				// Find the trans_table that keep the page of current process memory
+				for(j = 0; j < proc_page_table->size; j++)
+					if (proc_page_table->table[j].v_index == page_id &&
+						proc_page_table->table[i].next_lv->size < (1 << SECOND_LV_LEN)) {
+						// Found the page and there are still available space
+						// add new row of phys-virt address pair
+						found = 1;
+						trans_table = proc_page_table->table[j].next_lv;
+						trans_table->table[trans_table->size].v_index = trans_id;
+						trans_table->table[trans_table->size].p_index = i;
+						trans_table->size++;
+						break;
 					}
+				if(!found) {
+				// No available page_table
+					proc_page_table->table[proc_page_table->size].v_index = page_id;
+					proc_page_table->table[proc_page_table->size].next_lv = 
+						(struct trans_table_t*)malloc(sizeof(struct trans_table_t));
+						// Allocate memory for a new page/trans_table
+					proc_page_table->table[proc_page_table->size].next_lv->table[0].v_index = trans_id;
+					proc_page_table->table[proc_page_table->size].next_lv->table[0].p_index = i;
+					proc_page_table->table[proc_page_table->size].next_lv->size = 1;
+					proc_page_table->size++;
+				}
+				num_alloc_pages++;
+				if(num_alloc_pages == num_pages) {
+				// Reach the final page
+					_mem_stat[i].next = -1;
+					break;
+				}
 			}
 		}
 	}
-	else{
+	else {
 		/* In case of no suitable space, we need to lift up the
 		 * barrier sbrk, which may need some physical frames and
 		 * then mapped with Page Table Entry. */
-		// TODO
+		// There is no sufficient memory, due to the requirement,
+		// 	no change in the memory is added
 	}
 	pthread_mutex_unlock(&mem_lock);
 	return ret_mem;
