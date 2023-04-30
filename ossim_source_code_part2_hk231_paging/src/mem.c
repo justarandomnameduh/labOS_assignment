@@ -12,7 +12,7 @@ static struct {
 			// to the process.
 	int next;	// The next page in the list. -1 if it is the last
 			// page.
-} _mem_stat [NUM_PAGES];
+} _mem_stat [NUM_PAGES];	// List of page info
 
 static pthread_mutex_t mem_lock;
 
@@ -107,7 +107,7 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 	 * For virtual memory space, check bp (break pointer).
 	 * */
 	// TODO
-	int i;
+	int i, j;
 	int num_avail_pages = 0;
 	for (i = 0; i < NUM_PAGES; i++) {
 		if(_mem_stat[i].proc == 0) {
@@ -124,7 +124,7 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 	if (mem_avail) {
 		/* We could allocate new memory region to the process */
 		ret_mem = proc->bp;
-		proc->bp += num_pages * PAGE_SIZE;
+		proc->bp += num_pages * PAGE_SIZE; // address of the top of the heap
 		/* Update status of physical pages which will be allocated
 		 * to [proc] in _mem_stat. Tasks to do:
 		 * 	- Update [proc], [index], and [next] field
@@ -132,6 +132,37 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 		 * 	  to ensure accesses to allocated memory slot is
 		 * 	  valid. */
 		// TODO
+		int num_alloc_pages = 0;
+		int prev_page_id;
+		addr_t cur_v_addr;
+		int trans_id, page_id;
+		struct page_table_t * page_table;
+		struct trans_table_t * current_page_table;
+		for(i = 0; i < NUM_PAGES; i++) {
+			// Iterate through list of pages to assign free page
+			// to current process
+			if(_mem_stat[i].proc == 0) { // haven't assign by any proc
+				_mem_stat[i].proc = proc->pid;
+				_mem_stat[i].index = num_alloc_pages;
+				if(_mem_stat[i].index != 0) // Not the first page, linked from previous page
+					_mem_stat[prev_page_id].next = i;
+				prev_page_id = i;
+				int found = 0;
+				page_table = proc->page_table;
+				if(page_table->table[0].next_lv == NULL) // page table with no trans_table
+					page_table->size = 0;
+				cur_v_addr = ret_mem + (num_alloc_pages << OFFSET_LEN);
+				page_id = get_first_lv(cur_v_addr);
+				trans_id = get_second_lv(cur_v_addr);
+				for(j = 0; j < page_table->size; j++)
+					if(page_table->table[j].v_index == page_id) {
+						// 
+						current_page_table = page_table->table[j].next_lv;
+						current_page_table->table[current_page_table->size].v_index = trans_id;
+						current_page_table->table[current_page_table->size].p_index = i;
+					}
+			}
+		}
 	}
 	else{
 		/* In case of no suitable space, we need to lift up the
