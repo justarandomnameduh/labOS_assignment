@@ -134,7 +134,7 @@ addr_t alloc_mem(uint32_t size, struct pcb_t *proc)
 
 	addr_t ret_mem = 0; // Address of the first byte in the allocated memory region
 
-	uint32_t num_next_lv = ((size % PAGE_SIZE) == 0) ? size / PAGE_SIZE : size / PAGE_SIZE + 1; // Number of next level page tables we will use
+	uint32_t num_pages = ((size % PAGE_SIZE) == 0) ? size / PAGE_SIZE : size / PAGE_SIZE + 1; // Number of next level page tables we will use
 	int mem_avail = 0;																			// Determines whether we can allocate new memory or not
 
 	/*
@@ -149,7 +149,7 @@ addr_t alloc_mem(uint32_t size, struct pcb_t *proc)
 		if (_mem_stat[i].proc == 0)
 		{						 // If the current page is free
 			num_avail_next_lv++; // Increase count of free pages
-			if (num_avail_next_lv == num_next_lv && proc->bp + num_next_lv * PAGE_SIZE <= RAM_SIZE)
+			if (num_avail_next_lv == num_pages && proc->bp + num_pages * PAGE_SIZE <= RAM_SIZE)
 			{				   // If we have enough free pages and enough space in virtual memory
 				mem_avail = 1; // We can allocate new memory
 				break;
@@ -160,7 +160,7 @@ addr_t alloc_mem(uint32_t size, struct pcb_t *proc)
 	if (mem_avail)
 	{										 // If we can allocate new memory
 		ret_mem = proc->bp;					 // Set starting address of allocated memory region as break pointer of process
-		proc->bp += num_next_lv * PAGE_SIZE; // Update break pointer of the process to account for newly allocated memory
+		proc->bp += num_pages * PAGE_SIZE; // Update break pointer of the process to account for newly allocated memory
 
 		/*
 		 * Next, we will update the physical memory state and add entries to process's segment table page tables,
@@ -223,7 +223,7 @@ addr_t alloc_mem(uint32_t size, struct pcb_t *proc)
 				}
 
 				num_alloc_next_lv++; // Increment number of next-level page tables we have traversed through while allocating memory
-				if (num_alloc_next_lv == num_next_lv)
+				if (num_alloc_next_lv == num_pages)
 				{							// If we have allocated enough memory pages
 					_mem_stat[i].next = -1; // Mark "next" field of last page as -1
 					break;					// Break out of loop
