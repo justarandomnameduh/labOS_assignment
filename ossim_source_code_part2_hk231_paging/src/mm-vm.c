@@ -123,11 +123,6 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
     return -1;
   }
   
-  // Calculate the new value of the break pointer and check the memory limit
-  if (old_sbrk + inc_sz > caller->max_size) {
-    return -1; // Failed to allocate memory beyond maximum size limit
-  }
-  
   // Increase the break pointer by inc_sz to allocate memory
   caller->bp += inc_sz;
   
