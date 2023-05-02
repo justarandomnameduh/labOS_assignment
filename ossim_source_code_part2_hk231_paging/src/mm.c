@@ -7,7 +7,6 @@
 #include "mm.h"
 #include <stdlib.h>
 #include <stdio.h>
-
 /*
  * init_pte - Initialize PTE entry
  */
@@ -82,51 +81,45 @@ int pte_set_fpn(uint32_t *pte, int fpn)
 /*
  * vmap_page_range - map a range of page at aligned address
  */
-/* Function that maps a range of physical memory pages to a given virtual address space.
-Takes in the process control block, start address aligned to page size, number of pages being mapped,
-an array of pointers to framephy_structs containing the mapped frames and a pointer to an vm_rg_struct
-that returns the mapped region and the real mapped fp.
-Iterates through each page and obtains the page table entry for each address. If successful,
-maps the frame to the address and tracks the page for future replacement activities (if needed).
-Returns 0 on success and -1 if it fails to allocate PTE. */
-int vmap_page_range(struct pcb_t *caller, int addr, int pgnum, struct framephy_struct *frames, struct vm_rg_struct *ret_rg)
-{
-  // Initialize variables
-  struct framephy_struct *fpit = malloc(sizeof(struct framephy_struct));
-  int pgit = 0;
+
+int vmap_page_range(struct pcb_t *caller, int addr, int pgnum, struct framephy_struct *frames, struct vm_rg_struct *ret_rg) {
+  // Compute page number of virtual address
   int pgn = PAGING_PGN(addr);
 
-  // Set the start and end of the return mapped region to the provided address
-  ret_rg->rg_end = ret_rg->rg_start = addr;
+  // Set start and end addresses in return range structure
+  ret_rg->rg_start = addr;
+  ret_rg->rg_end = ret_rg->rg_start + (pgnum * PAGING_PAGESZ); // calculate end address
 
-  fpit->fp_next = frames;
-
-  // Map range of frame to address space
-  while (pgit < pgnum)
-  {
-    uint32_t *pte = get_pte_for_addr(caller->mm, addr + pgit * PAGING_PAGESZ, /*create*/ 1);
-    if (!pte)
-    {
-      // Couldn't allocate PTE, so return error
-      return -1;
+  // Start iterating over linked list of physical frames
+  struct framephy_struct *fpit = frames; // start with head of linked list
+  for (int pgit = 0; pgit < pgnum; pgit++) {
+    // Check if linked list pointer is null
+    if (fpit == NULL) {
+      return -1; // handle null pointer case by returning error value
     }
-    uint32_t pte_val = FP_TO_PFN(fpit->fp_paddr) | PAGING_PRESENT | PAGING_WRITABLE | PAGING_USER;
-    *pte = pte_val;
 
-    // Update the end of the return mapped region
-    ret_rg->rg_end += PAGING_PAGESZ;
+    // Create pointer to page table entry (PTE) for current page
+    int *pgd_ptr = &(caller->mm->pgd[pgn + pgit]); // use temporary pointer variable
 
+    // Reserve the physical frame for the caller's memory manager by setting the owner field
+    fpit->owner = caller->mm;
+
+    // Update PTE with physical page number (PPN) multiplied by page size
+    *pgd_ptr = fpit->fpn * PAGING_PAGESZ; // update page table entry with physical frame number
+
+    // Move on to next physical frame in the linked list
     fpit = fpit->fp_next;
-    pgit++;
-
-    /* Tracking for later page replacement activities (if needed)
-    Enqueue new usage page */
-    enlist_pgn_node(&caller->mm->fifo_pgn, pgn + pgit);
   }
 
-  // Return success
+  // Add virtual page numbers of new pages to the page number list for the caller's memory manager
+  enlist_pgn_node(&caller->mm->fifo_pgn, pgn + pgnum);
+
+  // Return success value
   return 0;
 }
+
+
+
 
 /*
  * alloc_pages_range - allocate req_pgnum of frame in ram
@@ -139,25 +132,23 @@ int vmap_page_range(struct pcb_t *caller, int addr, int pgnum, struct framephy_s
 Takes in a process control block, a request for the number of pages, and a pointer to an array of pointers to framephy_structs.
 Iterates through the request page number and calls MEMPHY_get_freefp function to get free pages.
 Returns 0 on success. */
-int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struct **frm_lst)
+int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struct** frm_lst)
 {
   int pgit, fpn;
+  //struct framephy_struct *newfp_str;
 
-  // Iterate through the requested page number
-  for (pgit = 0; pgit < req_pgnum; pgit++)
+  for(pgit = 0; pgit < req_pgnum; pgit++)
   {
-    // Call MEMPHY_get_freefp function to get free frames
-    if (MEMPHY_get_freefp(caller->mram, &fpn) == 0)
-    {
-    }
-    else
-    { // If we cannot obtain enough frames
-      // Return error code or handle error accordingly
-    }
-  }
+    if(MEMPHY_get_freefp(caller->mram, &fpn) == 0)
+   {
+     
+   } else {  // ERROR CODE of obtaining somes but not enough frames
+   } 
+ }
 
-  return 0; // Return success
+  return 0;
 }
+
 
 /*
  * vm_map_ram - do the mapping all vm are to ram storage device
