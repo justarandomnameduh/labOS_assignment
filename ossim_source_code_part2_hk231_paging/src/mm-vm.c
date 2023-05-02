@@ -3,11 +3,15 @@
  * PAGING based Memory Management
  * Virtual memory module mm/mm-vm.c
  */
-
+#include <asm-generic/pgtable.h>
 #include "string.h"
 #include "mm.h"
 #include <stdlib.h>
 #include <stdio.h>
+#define PAGING_PAGE_SIZE 4096
+/*
+ * Allocate physical frames on the MEMRAM device
+ */
 
 /*enlist_vm_freerg_list - add new rg to freerg_list
  *@mm: memory region
@@ -101,30 +105,43 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
     return 0;
   }
 
-  /* get_free_vmrg_area FAILED handle the region management (Fig.6)*/
-  
   // If there is not enough free space in the VMA, attempt to increase its limit
+  // Get virtual memory area corresponding to vmaid
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
+  
+  // Store current value of break pointer in old_sbrk variable
   int old_sbrk = cur_vma->sbrk;
-  int inc_sz = PAGING_PAGE_ALIGNSZ(size); // Round up to nearest page
-
+  
+  // Round up size to nearest page size and store in inc_sz variable
+  int inc_sz = PAGING_PAGE_ALIGNSZ(size);
+  
+  // Increase virtual memory area limit by inc_sz, returns 0 on success
   int inc_limit_ret = inc_vma_limit(caller, vmaid, inc_sz);
-
+  
+  // Check if increasing limit failed, return -1 indicating failure
   if (inc_limit_ret != 0) {
     // Failed to allocate memory
     return -1;
   }
-
-  /*Successful increase limit */
+  
+  // Calculate the new value of the break pointer and check the memory limit
+  if (old_sbrk + inc_sz > caller->max_size) {
+    return -1; // Failed to allocate memory beyond maximum size limit
+  }
+  
+  // Increase the break pointer by inc_sz to allocate memory
+  caller->bp += inc_sz;
+  
   // Update symbol table with allocated memory range
   caller->mm->symrgtbl[rgid].rg_start = old_sbrk;
   caller->mm->symrgtbl[rgid].rg_end = old_sbrk + size;
-
+  
   // Return the starting address of the allocated memory
   *alloc_addr = old_sbrk;
-
+  
+  // Return 0 indicating successful allocation
   return 0;
-}
+  
 
 
 
@@ -220,8 +237,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
         /* Update page table entries */
         pte_set_swap(&mm->pgd[pgn], 0);
-        pte_set_fpn(&mm->pgd[pgn], PAGING_SWAP(swpfpn));
-        pte_set_present(&mm->pgd[pgn]);
+        pte_set_fpn(&mm->pgd[pgn], PAGING_SWP(swpfpn));
 
         /* Add page to process's FIFO queue */
         enlist_pgn_node(&caller->mm->fifo_pgn, pgn);
