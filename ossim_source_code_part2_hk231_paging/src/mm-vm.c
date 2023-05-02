@@ -169,8 +169,7 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
         return -1;
     }
 
-    /* Free the specified region of the virtual memory */
-    free_vm_page_range(caller->mm, vma, rgid);
+
 
     /* Add the freed memory range to the freerg_list */
     rgnode.start = PAGE_SIZE * (vma->vm_start + rgid);
