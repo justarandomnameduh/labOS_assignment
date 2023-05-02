@@ -86,22 +86,27 @@ int vmap_page_range(struct pcb_t *caller, // process call
               struct vm_rg_struct *ret_rg)// return mapped region, the real mapped fp
 {                                         // no guarantee all given pages are mapped
   uint32_t * pte;
-  struct framephy_struct *fpit = malloc(sizeof(struct framephy_struct));
+  struct framephy_struct *fpit;
   //int  fpn;
   int pgit = 0;
   int pgn = PAGING_PGN(addr);
 
   ret_rg->rg_end = ret_rg->rg_start = addr; // at least the very first space is usable
-
-  fpit->fp_next = frames;
-
+  // add new mapped frame to the front of frames
+  fpit = frames;
+  frames = fpit;
   /* TODO map range of frame to address space
    *      [addr to addr + pgnum*PAGING_PAGESZ
    *      in page table caller->mm->pgd[]
    */
-  while(pgit < pgnum) {
+  // whether reach the number of required mapped page
+  //  or fill all the mapped frames
+  while(fpit != NULL && pgit < pgnum) {
+    caller->mm->pgd[pgit] = fpit->fpn;
+    fpit = fpit->fp_next;
+    pgit++;
   }
-
+  
    /* Tracking for later page replacement activities (if needed)
     * Enqueue new usage page */
    enlist_pgn_node(&caller->mm->fifo_pgn, pgn+pgit);
