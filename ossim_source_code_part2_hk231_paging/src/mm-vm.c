@@ -3,7 +3,6 @@
  * PAGING based Memory Management
  * Virtual memory module mm/mm-vm.c
  */
-#include <asm-generic/pgtable.h>
 #include "string.h"
 #include "mm.h"
 #include <stdlib.h>
