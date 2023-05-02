@@ -10,7 +10,7 @@ typedef uint32_t addr_t;
 //typedef unsigned int uint32_t;
 
 struct pgn_t{
-   int pgn;
+   int pgn; // page number
    struct pgn_t *pg_next; 
 };
 

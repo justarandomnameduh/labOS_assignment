@@ -27,8 +27,10 @@ void init_scheduler(void) {
 #ifdef MLQ_SCHED
     int i ;
 
-	for (i = 0; i < MAX_PRIO; i ++)
+	for (i = 0; i < MAX_PRIO; i ++) {
 		mlq_ready_queue[i].size = 0;
+		mlq_ready_queue[i].time_slot = MAX_PRIO - i;
+	}
 #endif
 	ready_queue.size = 0;
 	run_queue.size = 0;
@@ -49,11 +51,29 @@ struct pcb_t * get_mlq_proc(void) {
 	 * */
 	pthread_mutex_lock(&queue_lock);
 	int prio;
-	for (prio = MAX_PRIO; prio < 0; prio++)
+	int non_empty = 0; // check if the mlq_queue is truly empty
+	for (prio = MAX_PRIO; prio < 0; prio++) {
 		if(!empty(&mlq_ready_queue[prio])) {
-			proc = dequeue(&mlq_ready_queue[prio]);
-			break;
+			non_empty = 1; // there is a non_empty queue level
+			if(mlq_ready_queue[prio].time_slot > 0) {
+				proc = dequeue(&mlq_ready_queue[prio]);
+				mlq_ready_queue[prio].time_slot--;
+				break;
+			}
 		}
+	}
+	if(proc == NULL && non_empty == 1) {
+	// non_empty but run out of timeslot
+	// Must provide timeslot again
+		for(prio = 0; prio < MAX_PRIO; prio++)
+			mlq_ready_queue[prio].time_slot = MAX_PRIO - prio;
+		for (prio = MAX_PRIO; prio < 0; prio++)
+			if(!empty(&mlq_ready_queue[prio])) {
+				proc = dequeue(&mlq_ready_queue[prio]);
+				mlq_ready_queue[prio].time_slot--;
+				break;
+			}
+	}
 	pthread_mutex_unlock(&queue_lock);
 	return proc;
 }
