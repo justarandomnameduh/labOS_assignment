@@ -102,10 +102,13 @@ int vmap_page_range(struct pcb_t *caller, // process call
   // whether reach the number of required mapped page
   //  or fill all the mapped frames
   while(fpit != NULL && pgit < pgnum) {
-    caller->mm->pgd[pgit] = fpit->fpn;
+    caller->mm->pgd[pgn + pgit] = fpit->fpn;
+    fpit->owner = caller->mm;
     fpit = fpit->fp_next;
     pgit++;
   }
+
+  ret_rg->rg_end = addr + pgit * PAGING_PAGESZ;
   
    /* Tracking for later page replacement activities (if needed)
     * Enqueue new usage page */
@@ -129,9 +132,9 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
 
   for(pgit = 0; pgit < req_pgnum; pgit++)
   {
-    if(MEMPHY_get_freefp(caller->mram, &fpn) == 0)
+    if(MEMPHY_get_freefp(caller->mram, &fpn) == 0)  // get first free frame from free list
    {
-
+      
    } else {  // ERROR CODE of obtaining somes but not enough frames
    }
  }
