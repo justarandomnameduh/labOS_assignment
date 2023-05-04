@@ -101,13 +101,11 @@ int vmap_page_range(struct pcb_t *caller, // process call
    */
   // whether reach the number of required mapped page
   //  or fill all the mapped frames
-  while(fpit != NULL && pgit < pgnum) {
-    caller->mm->pgd[pgn + pgit] = fpit->fpn;
-    fpit->owner = caller->mm;
+  while (fpit != NULL && pgit < pgnum) {
+    caller->mm->pgd[pgit] = fpit->fpn;
     fpit = fpit->fp_next;
     pgit++;
   }
-
   ret_rg->rg_end = addr + pgit * PAGING_PAGESZ;
   
    /* Tracking for later page replacement activities (if needed)
@@ -128,14 +126,27 @@ int vmap_page_range(struct pcb_t *caller, // process call
 int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struct** frm_lst)
 {
   int pgit, fpn;
-  //struct framephy_struct *newfp_str;
+  struct framephy_struct *newfp_str, *usedfp_str;
 
   for(pgit = 0; pgit < req_pgnum; pgit++)
   {
-    if(MEMPHY_get_freefp(caller->mram, &fpn) == 0)  // get first free frame from free list
+    if(MEMPHY_get_freefp(caller->mram, &fpn) == 0)
    {
-      
+    // Assign fpn to frm_list
+    newfp_str = (struct framephy_struct *)malloc(sizeof(struct framephy_struct));
+    newfp_str->fpn = fpn;
+    newfp_str->fp_next = *frm_lst;
+    newfp_str->owner = caller->mm;
+    *frm_lst = newfp_str;
+    // Move the frame to used_list of caller
+    usedfp_str = (struct framephy_struct *)malloc(sizeof(struct framephy_struct));
+    usedfp_str->fp_next = caller->mram->used_fp_list;
+    usedfp_str->fpn = fpn;
+    usedfp_str->owner = caller->mm;
+    caller->mram->used_fp_list = usedfp_str;
    } else {  // ERROR CODE of obtaining somes but not enough frames
+    printf("[ERROR] Only got %d frames. Aborting...\n", pgit);
+    return -1;
    }
  }
 
