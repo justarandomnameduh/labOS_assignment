@@ -102,7 +102,8 @@ int vmap_page_range(struct pcb_t *caller, // process call
   // whether reach the number of required mapped page
   //  or fill all the mapped frames
   while (fpit != NULL && pgit < pgnum) {
-    caller->mm->pgd[pgit] = fpit->fpn;
+    pte = caller->mm->pgd;
+    pte_set_fpn(pte, fpit->fpn);
     fpit = fpit->fp_next;
     pgit++;
   }
