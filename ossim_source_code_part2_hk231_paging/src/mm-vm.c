@@ -130,7 +130,8 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
     return -1;
 
   /* TODO: Manage the collect freed region to freerg_list */
-
+  rgnode.rg_start = caller->mm->symrgtbl[rgid].rg_start;
+  rgnode.rg_end = caller->mm->symrgtbl[rgid].rg_end;
   /*enlist the obsoleted memory region */
   enlist_vm_freerg_list(caller->mm, rgnode);
 
@@ -447,7 +448,23 @@ int find_victim_page(struct mm_struct *mm, int *retpgn)
   struct pgn_t *pg = mm->fifo_pgn;
 
   /* TODO: Implement the theorical mechanism to find the victim page */
-
+  if (pg == NULL) {
+    printf("[ERROR] Empty page free list.\n");
+    return -1;
+  }
+  int last_page = 1;
+  // Collect last page from pg
+  while (pg->pg_next != NULL) {
+    pg = pg->pg_next;
+    last_page = 0;
+  }
+  // Assign victim page number to return pointer
+  *retpgn = pg->pgn;
+  // Check for last victim page condition
+  if (last_page) {
+    // Set page list to NULL
+    mm->fifo_pgn = NULL;
+  }
   free(pg);
 
   return 0;
