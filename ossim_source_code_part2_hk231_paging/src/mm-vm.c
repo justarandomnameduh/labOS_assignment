@@ -148,35 +148,20 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
  */
 int __free(struct pcb_t *caller, int vmaid, int rgid)
 {
-    struct vm_rg_struct rgnode;
+  struct vm_rg_struct rgnode;
+  struct vm_rg_struct* rgptr = get_symrg_byid(caller->mm, rgid);
+  if (rgptr == NULL)
+    return -1;
+  /* TODO: Manage the collect freed region to freerg_list */
+  rgnode.rg_start = rgptr->rg_start;
+  rgnode.rg_end = rgptr->rg_end;
+  /*enlist the obsoleted memory region */
+  enlist_vm_freerg_list(caller->mm, rgnode);
+  // Set region to invalid
+  rgptr->rg_start = rgptr->rg_end = -1;
+  rgptr->rg_next = NULL;
 
-    if(rgid < 0 || rgid > PAGING_MAX_SYMTBL_SZ) {
-        return -1;
-    }
-
-    /* Get the virtual memory region to be freed */
-    struct vm_area_struct *vma = caller->mm->mmap;
-
-    while(vma != NULL && vma->vm_next != NULL) {
-        if(vmaid == vma->vm_id) {
-            break;
-        }
-        vma = vma->vm_next;
-    }
-
-    /* Check that the requested virtual memory region exists */
-    if(vma == NULL || vma->vm_id != vmaid) {
-        return -1;
-    }
-
-
-
-    /* Add the freed memory range to the freerg_list */
-    rgnode.start = PAGE_SIZE * (vma->vm_start + rgid);
-    rgnode.end = rgnode.start + PAGE_SIZE;
-    enlist_vm_freerg_list(caller->mm, rgnode);
-
-    return 0;
+  return 0;
 }
 
 /*pgalloc - PAGING-based allocate a region memory
