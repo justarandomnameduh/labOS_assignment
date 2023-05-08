@@ -225,21 +225,25 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
         MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
 
         /* Swap victim page out to MEMSWP and swap new page in from MEMSWP */
-        __swap_cp_page(mm, vicpgn, swpfpn);
-        __swap_cp_page(mm, pgn, PAGING_SWP(pte));
-
+        /* Swap victim page out to MEMSWP and swap new page in from MEMSWP */
+        __swap_cp_page(mm, vicpgn * PAGING_PAGESZ, caller->active_mswp, swpfpn * PAGING_PAGESZ);
+        __swap_cp_page(mm, pgn * PAGING_PAGESZ, caller->active_mswp, swpfpn * PAGING_PAGESZ);
+        
         /* Update page table entries */
-        pte_set_swap(&mm->pgd[pgn], 0);
-        pte_set_fpn(&mm->pgd[pgn], PAGING_SWP(swpfpn));
-
+        pte_set_swap(&mm->pgd[pgn], 0, swpfpn); // set the swap type to 0 (traditional swap space) and swap offset to swpfpn
+        pte_set_fpn(&mm->pgd[pgn], PAGING_SWP(swpfpn)); // set the frame number using PAGING_SWP macro
+        
         /* Add page to process's FIFO queue */
         enlist_pgn_node(&caller->mm->fifo_pgn, pgn);
+        
     }
 
     *fpn = PAGING_FPN(pte);
 
     return 0;
 }
+
+
 
 /*pg_getval - read value at given offset
  *@mm: memory region
