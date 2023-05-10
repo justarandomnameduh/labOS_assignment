@@ -26,11 +26,11 @@ int read(
 		uint32_t source, // Index of source register
 		uint32_t offset, // Source address = [source] + [offset]
 		uint32_t destination) { // Index of destination register
-	
+
 	BYTE data;
 	if (read_mem(proc->regs[source] + offset, proc,	&data)) {
 		proc->regs[destination] = data;
-		return 0;		
+		return 0;
 	}else{
 		return 1;
 	}
@@ -43,14 +43,14 @@ int write(
 		uint32_t offset) { 	// Destination address =
 					// [destination] + [offset]
 	return write_mem(proc->regs[destination] + offset, proc, data);
-} 
+}
 
 int run(struct pcb_t * proc) {
 	/* Check if Program Counter point to the proper instruction */
 	if (proc->pc >= proc->code->size) {
 		return 1;
 	}
-	
+
 	struct inst_t ins = proc->code->text[proc->pc];
 	proc->pc++;
 	int stat = 1;
@@ -93,5 +93,3 @@ int run(struct pcb_t * proc) {
 	return stat;
 
 }
-
-

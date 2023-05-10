@@ -9,6 +9,7 @@
 struct queue_t {
 	struct pcb_t * proc[MAX_QUEUE_SIZE];
 	int size;
+	int time_slot;
 };
 
 void enqueue(struct queue_t * q, struct pcb_t * proc);

@@ -43,7 +43,7 @@ struct pcb_t * load(const char * path) {
 	FILE * file;
 	if ((file = fopen(path, "r")) == NULL) {
 		printf("Cannot find process description at '%s'\n", path);
-		exit(1);		
+		exit(1);
 	}
 	char opcode[10];
 	proc->code = (struct code_seg_t*)malloc(sizeof(struct code_seg_t));
@@ -78,7 +78,7 @@ struct pcb_t * load(const char * path) {
 				&proc->code->text[i].arg_1,
 				&proc->code->text[i].arg_2
 			);
-			break;	
+			break;
 		default:
 			printf("Opcode: %s\n", opcode);
 			exit(1);
@@ -86,6 +86,3 @@ struct pcb_t * load(const char * path) {
 	}
 	return proc;
 }
-
-
-

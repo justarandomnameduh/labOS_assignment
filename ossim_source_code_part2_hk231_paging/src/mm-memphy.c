@@ -119,7 +119,7 @@ int MEMPHY_format(struct memphy_struct *mp, int pagesz)
     if (numfp <= 0)
       return -1;
 
-    /* Init head of free framephy list */ 
+    /* Init head of free framephy list */
     fst = malloc(sizeof(struct framephy_struct));
     fst->fpn = iter;
     mp->free_fp_list = fst;
@@ -157,10 +157,13 @@ int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
 
 int MEMPHY_dump(struct memphy_struct * mp)
 {
-    /*TODO dump memphy contnt mp->storage 
+    /*TODO dump memphy contnt mp->storage
      *     for tracing the memory content
      */
-
+   int i;
+   for (i = 0; i < mp->maxsz; i++) {
+      printf("%c", mp->storage[i]);
+   }
     return 0;
 }
 

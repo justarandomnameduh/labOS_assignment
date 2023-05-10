@@ -33,7 +33,7 @@ static struct ld_args{
 #ifdef MLQ_SCHED
 	unsigned long * prio;
 #endif
-} ld_processes;
+} ld_processes; // Array of processes
 int num_processes;
 
 struct cpu_args {
@@ -72,7 +72,7 @@ static void * cpu_routine(void * args) {
 			put_proc(proc);
 			proc = get_proc();
 		}
-		
+
 		/* Recheck process status after loading new process */
 		if (proc == NULL && done) {
 			/* No process to run, exit */
@@ -88,7 +88,7 @@ static void * cpu_routine(void * args) {
 				id, proc->pid);
 			time_left = time_slot;
 		}
-		
+
 		/* Run current process */
 		run(proc);
 		time_left--;
@@ -153,7 +153,7 @@ static void read_config(const char * path) {
 #ifdef MM_FIXED_MEMSZ
 	/* We provide here a back compatible with legacy OS simulatiom config file
          * In which, it have no addition config line for Mema, keep only one line
-	 * for legacy info 
+	 * for legacy info
          *  [time slice] [N = Number of CPU] [M = Number of Processes to be run]
          */
         memramsz    =  0x100000;
@@ -167,7 +167,7 @@ static void read_config(const char * path) {
 	*/
 	fscanf(file, "%d\n", &memramsz);
 	for(sit = 0; sit < PAGING_MAX_MMSWP; sit++)
-		fscanf(file, "%d", &(memswpsz[sit])); 
+		fscanf(file, "%d", &(memswpsz[sit]));
 
        fscanf(file, "\n"); /* Final character */
 #endif
@@ -208,7 +208,7 @@ int main(int argc, char * argv[]) {
 	struct cpu_args * args =
 		(struct cpu_args*)malloc(sizeof(struct cpu_args) * num_cpus);
 	pthread_t ld;
-	
+
 	/* Init timer */
 	int i;
 	for (i = 0; i < num_cpus; i++) {
@@ -229,7 +229,7 @@ int main(int argc, char * argv[]) {
 	/* Create MEM RAM */
 	init_memphy(&mram, memramsz, rdmflag);
 
-        /* Create all MEM SWAP */ 
+        /* Create all MEM SWAP */
 	int sit;
 	for(sit = 0; sit < PAGING_MAX_MMSWP; sit++)
 	       init_memphy(&mswp[sit], memswpsz[sit], rdmflag);
@@ -270,6 +270,3 @@ int main(int argc, char * argv[]) {
 	return 0;
 
 }
-
-
-
