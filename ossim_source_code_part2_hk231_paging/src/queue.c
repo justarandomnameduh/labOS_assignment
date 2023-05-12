@@ -19,18 +19,10 @@ struct pcb_t * dequeue(struct queue_t * q) {
          * */
         if(empty(q))
                 return NULL;
-        struct pcb_t* tmp = (q->proc)[0];
-        int swap_index = -1;
-        for(int i = 0; i < q->size; i++){
-                if(tmp->priority < (q->proc)[i]->priority){
-                        swap_index = i;
-                        tmp = (q->proc)[i];
-                }
-        }
-        if(swap_index != q->size - 1){
-                (q->proc)[swap_index] = (q->proc)[q->size-1];
-                (q->proc)[q->size-1] = tmp;
+        struct pcb_t* ret = (q->proc)[0];
+        for(int i = 0; i < q->size-1; i++){
+                (q->proc)[i] = (q->proc)[i+1];
         }
         q->size--;
-        return (q->proc)[q->size];
+        return ret;
 }
