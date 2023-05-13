@@ -134,17 +134,9 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
     if(MEMPHY_get_freefp(caller->mram, &fpn) == 0)
    {
     // Assign fpn to frm_list
-    newfp_str = (struct framephy_struct *)malloc(sizeof(struct framephy_struct));
-    newfp_str->fpn = fpn;
-    newfp_str->fp_next = *frm_lst;
-    newfp_str->owner = caller->mm;
-    *frm_lst = newfp_str;
+    MEMPHY_put_freefp(frm_lst, fpn);
     // Move the frame to used_list of caller
-    usedfp_str = (struct framephy_struct *)malloc(sizeof(struct framephy_struct));
-    usedfp_str->fp_next = caller->mram->used_fp_list;
-    usedfp_str->fpn = fpn;
-    usedfp_str->owner = caller->mm;
-    caller->mram->used_fp_list = usedfp_str;
+    MEMPHY_put_freefp(caller->mram->used_fp_list, fpn);
    } else {  // ERROR CODE of obtaining somes but not enough frames
     printf("[ERROR] Only got %d frames. Aborting...\n", pgit);
     return -1;
