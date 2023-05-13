@@ -212,11 +212,8 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
     enlist_pgn_node(&caller->mm->fifo_pgn, pgn); // add page to process's FIFO queue
   }
-  else
-  {
     /* If the page is already present in physical memory */
     *fpn = PAGING_FPN(pte); // get the physical frame number
-  }
 
   return 0;
 }
