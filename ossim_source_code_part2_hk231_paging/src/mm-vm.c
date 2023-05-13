@@ -180,11 +180,12 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     /* If the page is not present in physical memory */
 
     int ramfpn;
+    int tgtfpn = PAGING_SWP(pte); // determine the target swap frame number
     /* Find a free frame in RAM */
     if (MEMPHY_get_freefp(caller->mram, &ramfpn) == 0)
     {
       /* If found a free frame in RAM */
-      int tgtfpn = PAGING_SWP(pte); // determine the target swap frame number
+      
 
       pte_set_fpn(&mm->pgd[pgn], ramfpn);                                // set the page table entry to point to a free frame in RAM
       __swap_cp_page(caller->active_mswp, tgtfpn, caller->mram, ramfpn); // copy the contents of the page from swap space into RAM
@@ -212,8 +213,11 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
     enlist_pgn_node(&caller->mm->fifo_pgn, pgn); // add page to process's FIFO queue
   }
+  else
+  {
     /* If the page is already present in physical memory */
     *fpn = PAGING_FPN(pte); // get the physical frame number
+  }
 
   return 0;
 }
