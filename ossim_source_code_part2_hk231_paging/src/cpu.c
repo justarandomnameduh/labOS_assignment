@@ -55,10 +55,10 @@ int run(struct pcb_t * proc) {
 	proc->pc++;
 	int stat = 1;
 	switch (ins.opcode) {
-	case CALC:
+	case CALC:	// thread-safe
 		stat = calc(proc);
 		break;
-	case ALLOC:
+	case ALLOC:	// not thread-safe ~ __alloc->inc_vma_limit->vm_map_ram
 #ifdef MM_PAGING
 		stat = pgalloc(proc, ins.arg_0, ins.arg_1);
 
@@ -66,21 +66,21 @@ int run(struct pcb_t * proc) {
 		stat = alloc(proc, ins.arg_0, ins.arg_1);
 #endif
 		break;
-	case FREE:
+	case FREE:	// thread-safe
 #ifdef MM_PAGING
 		stat = pgfree_data(proc, ins.arg_0);
 #else
 		stat = free_data(proc, ins.arg_0);
 #endif
 		break;
-	case READ:
+	case READ:	// not thread-safe ~ __read->pg_getval
 #ifdef MM_PAGING
 		stat = pgread(proc, ins.arg_0, ins.arg_1, ins.arg_2);
 #else
 		stat = read(proc, ins.arg_0, ins.arg_1, ins.arg_2);
 #endif
 		break;
-	case WRITE:
+	case WRITE: // not thread-safe ~ __write->pg_setval
 #ifdef MM_PAGING
 		stat = pgwrite(proc, ins.arg_0, ins.arg_1, ins.arg_2);
 #else
