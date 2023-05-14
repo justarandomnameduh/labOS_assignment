@@ -13,6 +13,7 @@
 static int time_slot;
 static int num_cpus;
 static int done = 0;
+static struct global_pg_t *global_fifo;
 
 #ifdef MM_PAGING
 static int memramsz;
@@ -206,6 +207,7 @@ int main(int argc, char * argv[]) {
 	strcat(path, argv[1]);
 	read_config(path);
 
+	global_fifo = (struct global_pg_t*)malloc(sizeof(struct global_pg_t));
 	pthread_mutex_init(&page_lock_global, NULL);
 
 	pthread_t * cpu = (pthread_t*)malloc(num_cpus * sizeof(pthread_t));

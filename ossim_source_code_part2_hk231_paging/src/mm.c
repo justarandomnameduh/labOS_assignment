@@ -139,10 +139,28 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
     newfp_str->fp_next = *frm_lst;
     *frm_lst = newfp_str;
    } else {  // ERROR CODE of obtaining somes but not enough frames
-    while(pgit < req_pgnum) {
-      int swpfpn = -1, vicfpn = -1;
-      uint32_t * vicpte = NULL;
+   // require swapping to collect free frame in RAM
+    int swpfpn, vicfpn;
+    uint32_t * vicpte;
+    struct framephy_struct *fp_new;
+    while(pgit < req_pgnum) { // collect required number of frames
+      swpfpn = vicfpn = -1;
+      vicpte = NULL;
+      // get victim page from global list
       find_victim_page_global(caller->mm, &vicpte);
+      vicfpn = GETVAL(*vicpte, PAGING_PTE_DIRTY_MASK, PAGING_PTE_FPN_LOBIT);
+      // get free frame from active_mswp
+      MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
+      // and move victim page to swap
+      __swap_cp_page(caller->mram, vicfpn, caller->active_mswp, swpfpn);
+      pte_set_swap(vicpte, 0, swpfpn);
+      // add the new frame to the front of frm_lst
+      fp_new = (struct framephy_struct *)malloc(sizeof(struct framephy_struct));
+      fp_new->fpn = vicfpn;
+      fp_new->fp_next = *frm_lst;
+      *frm_lst = fp_new;
+
+      pgit++;
     }
     // printf("[ERROR] Only got %d frames. Aborting...\n", pgit);
     // return -1;
@@ -164,6 +182,8 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
  */
 int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int incpgnum, struct vm_rg_struct *ret_rg)
 {
+  // not thread-safe due to global memory object accessing
+  // ~find_victim_page_global()
   struct framephy_struct *frm_lst = NULL;
   int ret_alloc;
 
@@ -174,24 +194,27 @@ int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int inc
    *in endless procedure of swap-off to get frame and we have not provide
    *duplicate control mechanism, keep it simple
    */
+  pthread_mutex_lock(caller->page_lock);
   ret_alloc = alloc_pages_range(caller, incpgnum, &frm_lst);
 
-  if (ret_alloc < 0 && ret_alloc != -3000)
+  if (ret_alloc < 0 && ret_alloc != -3000) {
+    pthread_mutex_unlock(caller->page_lock);
     return -1;
-
+  }
   /* Out of memory */
   if (ret_alloc == -3000)
   {
 #ifdef MMDBG
      printf("OOM: vm_map_ram out of memory \n");
 #endif
-     return -1;
+    pthread_mutex_unlock(caller->page_lock);
+    return -1;
   }
 
   /* it leaves the case of memory is enough but half in ram, half in swap
    * do the swaping all to swapper to get the all in ram */
   vmap_page_range(caller, mapstart, incpgnum, frm_lst, ret_rg);
-
+  pthread_mutex_unlock(caller->page_lock);
   return 0;
 }
 
@@ -227,6 +250,7 @@ int __swap_cp_page(struct memphy_struct *mpsrc, int srcfpn,
 int init_mm(struct mm_struct *mm, struct pcb_t *caller)
 {
   struct vm_area_struct * vma = malloc(sizeof(struct vm_area_struct));
+  int i;
 
   mm->pgd = malloc(PAGING_MAX_PGN*sizeof(uint32_t));
 
@@ -235,6 +259,7 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
   vma->vm_start = 0;
   vma->vm_end = vma->vm_start;
   vma->sbrk = vma->vm_start;
+  vma->vm_freerg_list = NULL;
   struct vm_rg_struct *first_rg = init_vm_rg(vma->vm_start, vma->vm_end);
   enlist_vm_rg_node(&vma->vm_freerg_list, first_rg);
 
@@ -242,6 +267,11 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
   vma->vm_mm = mm; /*point back to vma owner */
 
   mm->mmap = vma;
+  for (i = 0; i < PAGING_MAX_SYMTBL_SZ; i++) {
+    // Init with invalid value
+    mm->symrgtbl[i].rg_start = mm->symrgtbl[i].rg_end = -1;
+    mm->symrgtbl[i].rg_next = NULL;
+  }
 
   return 0;
 }
