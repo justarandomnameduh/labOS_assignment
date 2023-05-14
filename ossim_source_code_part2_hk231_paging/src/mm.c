@@ -103,7 +103,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
   //  or fill all the mapped frames
   while (fpit != NULL && pgit < pgnum) {
     pte = caller->mm->pgd;
-    pte_set_fpn(pte, fpit->fpn);
+    pte_set_fpn(pte[pgn + pgit], fpit->fpn);
     fpit = fpit->fp_next;
     pgit++;
   }
@@ -134,12 +134,18 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
     if(MEMPHY_get_freefp(caller->mram, &fpn) == 0)
    {
     // Assign fpn to frm_list
-    MEMPHY_put_freefp(frm_lst, fpn);
-    // Move the frame to used_list of caller
-    MEMPHY_put_freefp(caller->mram->used_fp_list, fpn);
+    newfp_str = (struct framephy_struct*)malloc(sizeof(struct framephy_struct));
+    newfp_str->fpn = fpn;
+    newfp_str->fp_next = *frm_lst;
+    *frm_lst = newfp_str;
    } else {  // ERROR CODE of obtaining somes but not enough frames
-    printf("[ERROR] Only got %d frames. Aborting...\n", pgit);
-    return -1;
+    while(pgit < req_pgnum) {
+      int swpfpn = -1, vicfpn = -1;
+      uint32_t * vicpte = NULL;
+      find_victim_page_global(caller->mm, &vicpte);
+    }
+    // printf("[ERROR] Only got %d frames. Aborting...\n", pgit);
+    // return -1;
    }
  }
 

@@ -74,6 +74,7 @@ struct pcb_t {
 	struct code_seg_t * code;	// Code segment
 	addr_t regs[10]; // Registers, store address of allocated regions
 	uint32_t pc; // Program pointer, point to the next instruction
+	pthread_mutex_t *page_lock; // 1 lock accross pages to make page table accessible one at a time
 #ifdef MLQ_SCHED
 	// Priority on execution (if supported), on-fly aka. changeable
 	// and this vale overwrites the default priority when it existed

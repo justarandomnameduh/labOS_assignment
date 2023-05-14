@@ -17,6 +17,7 @@ static int done = 0;
 #ifdef MM_PAGING
 static int memramsz;
 static int memswpsz[PAGING_MAX_MMSWP];
+pthread_mutex_t page_lock_global;
 
 struct mmpaging_ld_args {
 	/* A dispatched argument struct to compact many-fields passing to loader */
@@ -111,6 +112,7 @@ static void * ld_routine(void * args) {
 	printf("ld_routine\n");
 	while (i < num_processes) {
 		struct pcb_t * proc = load(ld_processes.path[i]);
+		proc->page_lock = &page_lock_global; // a
 #ifdef MLQ_SCHED
 		proc->prio = ld_processes.prio[i];
 #endif
@@ -203,6 +205,8 @@ int main(int argc, char * argv[]) {
 	strcat(path, "input/");
 	strcat(path, argv[1]);
 	read_config(path);
+
+	pthread_mutex_init(&page_lock_global, NULL);
 
 	pthread_t * cpu = (pthread_t*)malloc(num_cpus * sizeof(pthread_t));
 	struct cpu_args * args =

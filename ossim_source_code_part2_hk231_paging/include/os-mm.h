@@ -15,6 +15,17 @@ struct pgn_t{
 };
 
 /*
+ * an alternative for pgn_t
+ * to keep track of free pages on a global scope
+ */
+struct global_pg_t{
+   int pgn;
+   uint32_t* pte;
+   struct global_pg_t * pg_next;
+   struct mm_struct * caller;
+}
+
+/*
  *  Memory region struct
  */
 struct vm_rg_struct {
@@ -55,6 +66,9 @@ struct mm_struct {
 
    /* list of free page */
    struct pgn_t *fifo_pgn;
+
+   /* list of free page (global scope) */
+   struct global_pg_t *global_fifo_pgn;
 };
 
 /*
