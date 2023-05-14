@@ -477,28 +477,30 @@ int find_victim_page(struct mm_struct *mm, int *retpgn)
  *@pgn: return page number
  * this is a better version since it can collect victim_page across procs running.
  */
-int find_victim_page_global(struct mm_struct *mm, uint32_t *retpgn)
+int find_victim_page_global(struct mm_struct *mm, uint32_t ** retpte)
 {
-  struct pgn_t *pg = mm->fifo_pgn;
-
+  struct global_pg_t *pg = mm->global_fifo_pgn;
+  struct global_pg_t *prev = NULL;
   /* TODO: Implement the theorical mechanism to find the victim page */
   if (pg == NULL) {
-    printf("[ERROR] Empty page free list.\n");
     return -1;
   }
   int last_page = 1;
   // Collect last page from pg
   while (pg->pg_next != NULL) {
+    prev = pg;
     pg = pg->pg_next;
     last_page = 0;
   }
   // Assign victim page number to return pointer
-  *retpgn = pg->pgn;
+  *retpte = pg->pte;
   // Check for last victim page condition
   if (last_page) {
     // Set page list to NULL
-    mm->fifo_pgn = NULL;
+    mm->global_fifo_pgn = NULL;
+    return 0;
   }
+  prev->pg_next = NULL;
   free(pg);
 
   return 0;

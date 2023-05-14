@@ -20,10 +20,10 @@ struct pgn_t{
  */
 struct global_pg_t{
    int pgn;
-   uint32_t* pte;
+   uint32_t pte;
    struct global_pg_t * pg_next;
    struct mm_struct * caller;
-}
+};
 
 /*
  *  Memory region struct

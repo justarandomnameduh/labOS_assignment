@@ -87,6 +87,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
 {                                         // no guarantee all given pages are mapped
   uint32_t * pte;
   struct framephy_struct *fpit;
+  struct mm_struct* caller_mm = caller->mm;
   //int  fpn;
   int pgit = 0;
   int pgn = PAGING_PGN(addr);
@@ -94,7 +95,6 @@ int vmap_page_range(struct pcb_t *caller, // process call
   ret_rg->rg_end = ret_rg->rg_start = addr; // at least the very first space is usable
   // add new mapped frame to the front of frames
   fpit = frames;
-  frames = fpit;
   /* TODO map range of frame to address space
    *      [addr to addr + pgnum*PAGING_PAGESZ
    *      in page table caller->mm->pgd[]
@@ -102,8 +102,8 @@ int vmap_page_range(struct pcb_t *caller, // process call
   // whether reach the number of required mapped page
   //  or fill all the mapped frames
   while (fpit != NULL && pgit < pgnum) {
-    pte = caller->mm->pgd;
-    pte_set_fpn(pte[pgn + pgit], fpit->fpn);
+    pte = caller_mm->pgd;
+    enlist_global_pg_node(caller_mm, caller_mm->global_fifo_pgn, pgn+pgit, pte[pgn + pgit]);
     fpit = fpit->fp_next;
     pgit++;
   }
@@ -111,7 +111,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
   
    /* Tracking for later page replacement activities (if needed)
     * Enqueue new usage page */
-   enlist_pgn_node(&caller->mm->fifo_pgn, pgn+pgit);
+  //  enlist_pgn_node(&caller->mm->fifo_pgn, pgn+pgit);
 
 
   return 0;
@@ -272,6 +272,17 @@ int enlist_pgn_node(struct pgn_t **plist, int pgn)
   pnode->pgn = pgn;
   pnode->pg_next = *plist;
   *plist = pnode;
+
+  return 0;
+}
+
+int enlist_global_pg_node(struct mm_struct* caller, struct global_pg_t **head, int pgn, uint32_t pte) {
+  struct global_pg_t *new_node = (struct global_pg_t *)malloc(sizeof(struct global_pg_t));
+  new_node->pgn = pgn;
+  new_node->pte = pte;
+  new_node->caller = caller;
+  new_node->pg_next = *head;
+  *head = new_node;
 
   return 0;
 }
