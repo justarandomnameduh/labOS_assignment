@@ -103,7 +103,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
   //  or fill all the mapped frames
   while (fpit != NULL && pgit < pgnum) {
     pte = caller_mm->pgd;
-    enlist_global_pg_node(caller_mm, caller_mm->global_fifo_pgn, pgn+pgit, pte[pgn + pgit]);
+    enlist_global_pg_node(caller_mm, &(caller_mm->global_fifo_pgn), pgn+pgit, &(pte[pgn + pgit]));
     fpit = fpit->fp_next;
     pgit++;
   }
@@ -147,7 +147,7 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
       swpfpn = vicfpn = -1;
       vicpte = NULL;
       // get victim page from global list
-      find_victim_page_global(caller->mm, vicpte);
+      find_victim_page_global(caller->mm, &vicpte);
       vicfpn = GETVAL(*vicpte, PAGING_PTE_DIRTY_MASK, PAGING_PTE_FPN_LOBIT);
       // get free frame from active_mswp
       MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
@@ -306,7 +306,7 @@ int enlist_pgn_node(struct pgn_t **plist, int pgn)
   return 0;
 }
 
-int enlist_global_pg_node(struct mm_struct* caller, struct global_pg_t **head, int pgn, uint32_t pte) {
+int enlist_global_pg_node(struct mm_struct* caller, struct global_pg_t **head, int pgn, uint32_t * pte) {
   struct global_pg_t *new_node = (struct global_pg_t *)malloc(sizeof(struct global_pg_t));
   new_node->pgn = pgn;
   new_node->pte = pte;

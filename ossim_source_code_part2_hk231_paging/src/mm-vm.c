@@ -21,11 +21,16 @@ int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct rg_elmt)
   if (rg_elmt.rg_start >= rg_elmt.rg_end)
     return -1;
 
+  struct vm_rg_struct * new_node = (struct vm_rg_struct *)malloc(sizeof(struct vm_rg_struct));
+  new_node->rg_start = rg_elmt.rg_start;
+  new_node->rg_end = rg_elmt.rg_end;
+  new_node->rg_next = rg_elmt.rg_next;
+
   if (rg_node != NULL)
-    rg_elmt.rg_next = rg_node;
+    new_node->rg_next = rg_node;
 
   /* Enlist the new region */
-  mm->mmap->vm_freerg_list = &rg_elmt;
+  mm->mmap->vm_freerg_list = new_node;
 
   return 0;
 }
@@ -127,15 +132,15 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
  */
 int __free(struct pcb_t *caller, int vmaid, int rgid)
 {
-  struct vm_rg_struct rgnode;
+  struct vm_rg_struct *rgnode = (struct vm_rg_struct *)malloc(sizeof(struct vm_rg_struct));
   struct vm_rg_struct* rgptr = get_symrg_byid(caller->mm, rgid);
   if (rgptr == NULL)
     return -1;
   /* TODO: Manage the collect freed region to freerg_list */
-  rgnode.rg_start = rgptr->rg_start;
-  rgnode.rg_end = rgptr->rg_end;
+  rgnode->rg_start = rgptr->rg_start;
+  rgnode->rg_end = rgptr->rg_end;
   /*enlist the obsoleted memory region */
-  enlist_vm_freerg_list(caller->mm, rgnode);
+  enlist_vm_freerg_list(caller->mm, *rgnode);
   // Set region to invalid
   rgptr->rg_start = rgptr->rg_end = -1;
   rgptr->rg_next = NULL;
@@ -180,9 +185,9 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
   if (!PAGING_PAGE_PRESENT(pte))
   { /* Page is not online, make it actively living */
-    int vicpgn, swpfpn;
+    int swpfpn;
     int vicfpn;
-    uint32_t* vicpte;
+    uint32_t *vicpte = NULL;
 
     int tgtfpn = PAGING_SWP(pte);//the target frame storing our variable
     // Considering free
@@ -192,20 +197,23 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
       // free frame can be seen in RAM
       __swap_cp_page(caller->active_mswp, tgtfpn, caller->mram, vicfpn);
       // assign previous frame in SWP as free for future allocation
-      MEMPHY_put_freefp(caller->active_mswp, tgtfpn);
+      // MEMPHY_put_freefp(caller->active_mswp, tgtfpn);
+      struct framephy_struct *fpnew = malloc(sizeof(struct framephy_struct));
+      fpnew->fpn = tgtfpn;
+      fpnew->fp_next = caller->active_mswp->free_fp_list;
       // Update status of target page to online
       pte_set_fpn(&mm->pgd[pgn], vicfpn);
     } else {
-      find_victim_page_global(caller->mm, vicpte);
+      find_victim_page_global(caller->mm, &vicpte);
       vicfpn = GETVAL(*vicpte, PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT);
       /* Get free frame in MEMSWP */
       MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
       // swapping between MEMRAM and MEMSWP
       /* Do swap frame from MEMRAM to MEMSWP and vice versa*/
       /* Copy victim frame to swap */
-      __swap_cp_page(caller->mram, vicpgn, caller->active_mswp, swpfpn);
+      __swap_cp_page(caller->mram, vicfpn, caller->active_mswp, swpfpn);
       /* Copy target frame from swap to mem */
-      __swap_cp_page(caller->active_mswp, tgtfpn, caller->mram, vicpgn);
+      __swap_cp_page(caller->active_mswp, tgtfpn, caller->mram, vicfpn);
       // assign previous frame in SWP as free for future allocation
       MEMPHY_put_freefp(caller->active_mswp, tgtfpn);
       // Update status of target page to online
@@ -213,7 +221,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
       /* Update page table */
       pte_set_swap(vicpte, 0, swpfpn);
     }
-    enlist_global_pg_node(caller->mm, caller->mm->global_fifo_pgn, pgn, caller->mm->pgd[pgn]);
+    enlist_global_pg_node(caller->mm, &(caller->mm->global_fifo_pgn), pgn, &(caller->mm->pgd[pgn]));
   }
 
   *fpn = PAGING_FPN(pte);
@@ -500,7 +508,7 @@ int find_victim_page(struct mm_struct *mm, int *retpgn)
  *@pgn: return page number
  * this is a better version since it can collect victim_page across procs running.
  */
-int find_victim_page_global(struct mm_struct *mm, uint32_t * retpte)
+int find_victim_page_global(struct mm_struct *mm, uint32_t ** retpte)
 {
   struct global_pg_t *pg = mm->global_fifo_pgn;
   struct global_pg_t *prev = NULL;
