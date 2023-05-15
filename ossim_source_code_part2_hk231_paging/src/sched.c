@@ -51,7 +51,7 @@ struct pcb_t * get_mlq_proc(void) {
 	 * */
 	pthread_mutex_lock(&queue_lock);
 	int prio;
-	for (prio = MAX_PRIO; prio < 0; prio++) {
+	for (prio = 0; prio < MAX_PRIO; prio++) {
 		if(!empty(&mlq_ready_queue[prio])) {
 			if (mlq_ready_queue[prio].time_slot > 0) {
 				proc = dequeue(&mlq_ready_queue[prio]);
@@ -65,7 +65,7 @@ struct pcb_t * get_mlq_proc(void) {
 	// Must provide timeslot again
 		for(prio = 0; prio < MAX_PRIO; prio++)
 			mlq_ready_queue[prio].time_slot = MAX_PRIO - prio;
-		for (prio = MAX_PRIO; prio < 0; prio++)
+		for (prio = 0; prio < MAX_PRIO; prio++)
 			if(!empty(&mlq_ready_queue[prio])) {
 				proc = dequeue(&mlq_ready_queue[prio]);
 				mlq_ready_queue[prio].time_slot--;

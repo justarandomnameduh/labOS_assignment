@@ -10,12 +10,12 @@
 #define PAGING_PAGE_ALIGNSZ(sz) (DIV_ROUND_UP(sz,PAGING_PAGESZ)*PAGING_PAGESZ)
 
 #define PAGING_MEMSWPSZ BIT(14) /* 16MB */
-#define PAGING_SWPFPN_OFFSET 5  
+#define PAGING_SWPFPN_OFFSET 5
 #define PAGING_MAX_PGN  (DIV_ROUND_UP(PAGING_CPU_BUS_WIDTH,PAGING_PAGESZ))
 
 #define PAGING_SBRK_INIT_SZ PAGING_PAGESZ
 /* PTE BIT */
-#define PAGING_PTE_PRESENT_MASK BIT(31) 
+#define PAGING_PTE_PRESENT_MASK BIT(31)
 #define PAGING_PTE_SWAPPED_MASK BIT(30)
 #define PAGING_PTE_RESERVE_MASK BIT(29)
 #define PAGING_PTE_DIRTY_MASK BIT(28)
@@ -95,8 +95,8 @@
 struct vm_rg_struct * init_vm_rg(int rg_start, int rg_endi);
 int enlist_vm_rg_node(struct vm_rg_struct **rglist, struct vm_rg_struct* rgnode);
 int enlist_pgn_node(struct pgn_t **pgnlist, int pgn);
-int enlist_global_pg_node(struct mm_struct* caller, struct global_pg_t **head, int pgn, uint32_t pte);
-int vmap_page_range(struct pcb_t *caller, int addr, int pgnum, 
+int enlist_global_pg_node(struct mm_struct* caller, struct global_pg_t *head, int pgn, uint32_t pte);
+int vmap_page_range(struct pcb_t *caller, int addr, int pgnum,
                     struct framephy_struct *frames, struct vm_rg_struct *ret_rg);
 int vm_map_ram(struct pcb_t *caller, int astart, int send, int mapstart, int incpgnum, struct vm_rg_struct *ret_rg);
 int alloc_pages_range(struct pcb_t *caller, int incpgnum, struct framephy_struct **frm_lst);

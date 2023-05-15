@@ -185,7 +185,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     uint32_t* vicpte;
 
     int tgtfpn = PAGING_SWP(pte);//the target frame storing our variable
-    // Considering free 
+    // Considering free
     /* TODO: Play with your paging theory here */
     /* Find victim page */
     if (MEMPHY_get_freefp(caller->mram, &vicfpn) == 0) {
@@ -196,7 +196,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
       // Update status of target page to online
       pte_set_fpn(&mm->pgd[pgn], vicfpn);
     } else {
-      find_victim_page_global(caller->mm, &vicpte);
+      find_victim_page_global(caller->mm, vicpte);
       vicfpn = GETVAL(*vicpte, PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT);
       /* Get free frame in MEMSWP */
       MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
@@ -212,7 +212,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
       pte_set_fpn(&mm->pgd[pgn], vicfpn);
       /* Update page table */
       pte_set_swap(vicpte, 0, swpfpn);
-    } 
+    }
     enlist_global_pg_node(caller->mm, caller->mm->global_fifo_pgn, pgn, caller->mm->pgd[pgn]);
   }
 
@@ -291,7 +291,7 @@ int __read(struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
 
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
 
-  if(currg == NULL || cur_vma == NULL || 
+  if(currg == NULL || cur_vma == NULL ||
       currg->rg_start + offset >= currg->rg_end) /* Invalid memory identify */
 	  return -1;
 
@@ -337,7 +337,7 @@ int __write(struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
 
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
 
-  if(currg == NULL || cur_vma == NULL || 
+  if(currg == NULL || cur_vma == NULL ||
       currg->rg_start + offset >= currg->rg_end) /* Invalid memory identify */
 	  return -1;
 
@@ -500,7 +500,7 @@ int find_victim_page(struct mm_struct *mm, int *retpgn)
  *@pgn: return page number
  * this is a better version since it can collect victim_page across procs running.
  */
-int find_victim_page_global(struct mm_struct *mm, uint32_t ** retpte)
+int find_victim_page_global(struct mm_struct *mm, uint32_t * retpte)
 {
   struct global_pg_t *pg = mm->global_fifo_pgn;
   struct global_pg_t *prev = NULL;

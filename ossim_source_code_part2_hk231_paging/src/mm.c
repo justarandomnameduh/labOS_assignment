@@ -108,7 +108,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
     pgit++;
   }
   ret_rg->rg_end = addr + pgit * PAGING_PAGESZ;
-  
+
    /* Tracking for later page replacement activities (if needed)
     * Enqueue new usage page */
   //  enlist_pgn_node(&caller->mm->fifo_pgn, pgn+pgit);
@@ -127,7 +127,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
 int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struct** frm_lst)
 {
   int pgit, fpn;
-  struct framephy_struct *newfp_str, *usedfp_str;
+  struct framephy_struct *newfp_str;
 
   for(pgit = 0; pgit < req_pgnum; pgit++)
   {
@@ -147,7 +147,7 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
       swpfpn = vicfpn = -1;
       vicpte = NULL;
       // get victim page from global list
-      find_victim_page_global(caller->mm, &vicpte);
+      find_victim_page_global(caller->mm, vicpte);
       vicfpn = GETVAL(*vicpte, PAGING_PTE_DIRTY_MASK, PAGING_PTE_FPN_LOBIT);
       // get free frame from active_mswp
       MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
