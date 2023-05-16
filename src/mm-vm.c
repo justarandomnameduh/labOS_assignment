@@ -21,6 +21,7 @@ int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct rg_elmt)
   if (rg_elmt.rg_start >= rg_elmt.rg_end)
     return -1;
 
+  // TOFIX
   struct vm_rg_struct * new_node = (struct vm_rg_struct *)malloc(sizeof(struct vm_rg_struct));
   new_node->rg_start = rg_elmt.rg_start;
   new_node->rg_end = rg_elmt.rg_end;
@@ -95,8 +96,9 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
     caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
 
     *alloc_addr = rgnode.rg_start;
+#ifdef DBG__
     RAM_dump(caller->mram);
-
+#endif
     return 0;
   }
 
