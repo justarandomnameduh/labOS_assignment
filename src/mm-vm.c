@@ -95,6 +95,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
     caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
 
     *alloc_addr = rgnode.rg_start;
+    RAM_dump(caller->mram);
 
     return 0;
   }
@@ -119,7 +120,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   caller->mm->symrgtbl[rgid].rg_end = old_sbrk + size;
 
   *alloc_addr = old_sbrk;
-
+  RAM_dump(caller->mram);
   return 0;
 }
 
@@ -134,6 +135,7 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
 {
   struct vm_rg_struct *rgnode = (struct vm_rg_struct *)malloc(sizeof(struct vm_rg_struct));
   struct vm_rg_struct* rgptr = get_symrg_byid(caller->mm, rgid);
+  
   if (rgptr == NULL)
     return -1;
   /* TODO: Manage the collect freed region to freerg_list */
@@ -197,10 +199,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
       // free frame can be seen in RAM
       __swap_cp_page(caller->active_mswp, tgtfpn, caller->mram, vicfpn);
       // assign previous frame in SWP as free for future allocation
-      // MEMPHY_put_freefp(caller->active_mswp, tgtfpn);
-      struct framephy_struct *fpnew = malloc(sizeof(struct framephy_struct));
-      fpnew->fpn = tgtfpn;
-      fpnew->fp_next = caller->active_mswp->free_fp_list;
+      MEMPHY_put_freefp(caller->active_mswp, tgtfpn);
       // Update status of target page to online
       pte_set_fpn(&mm->pgd[pgn], vicfpn);
     } else {
@@ -221,7 +220,8 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
       /* Update page table */
       pte_set_swap(vicpte, 0, swpfpn);
     }
-    enlist_global_pg_node(caller->mm, &(caller->mm->global_fifo_pgn), pgn, &(caller->mm->pgd[pgn]));
+    enlist_global_pg_node(caller->mm, caller->mm->global_fifo_pgn, pgn, &(caller->mm->pgd[pgn]));
+    print_global_list(caller->mm);
   }
 
   *fpn = PAGING_FPN(pte);
@@ -301,7 +301,10 @@ int __read(struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
 
   if(currg == NULL || cur_vma == NULL ||
       currg->rg_start + offset >= currg->rg_end) /* Invalid memory identify */
-	  return -1;
+	  {
+      printf("READ operation failed.\n");
+      return -1;
+    }
 
   pg_getval(caller->mm, currg->rg_start + offset, data, caller);
 
@@ -347,7 +350,10 @@ int __write(struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
 
   if(currg == NULL || cur_vma == NULL ||
       currg->rg_start + offset >= currg->rg_end) /* Invalid memory identify */
-	  return -1;
+	  {
+      printf("WRITE operation failed.\n");
+      return -1;
+    }
 
   pg_setval(caller->mm, currg->rg_start + offset, value, caller);
 
@@ -434,7 +440,7 @@ int validate_overlap_vm_area(struct pcb_t *caller, int vmaid, int vmastart, int 
   //struct vm_area_struct *vma = caller->mm->mmap;
 
   /* TODO validate the planned memory area is not overlapped */
-  if (vmastart >= vmaend) return -1;
+  if (vmastart == vmaend) return -1;
 
   return 0;
 }
@@ -510,30 +516,44 @@ int find_victim_page(struct mm_struct *mm, int *retpgn)
  */
 int find_victim_page_global(struct mm_struct *mm, uint32_t ** retpte)
 {
-  struct global_pg_t *pg = mm->global_fifo_pgn;
+  struct global_pg_t * pg = mm->global_fifo_pgn->head;
   struct global_pg_t *prev = NULL;
   /* TODO: Implement the theorical mechanism to find the victim page */
   if (pg == NULL) {
+    printf("[ERROR] Empty free_pg_list!\n");
     return -1;
   }
-  int last_page = 1;
   // Collect last page from pg
+  int last_page = 1;
   while (pg->pg_next != NULL) {
     prev = pg;
     pg = pg->pg_next;
     last_page = 0;
   }
   // Assign victim page number to return pointer
-  *retpte = pg->pte;
+  
   // Check for last victim page condition
   if (last_page) {
     // Set page list to NULL
-    mm->global_fifo_pgn = NULL;
-    return 0;
+    mm->global_fifo_pgn->head = NULL;
+    // *(mm->global_fifo_pgn) = NULL;
   }
-  prev->pg_next = NULL;
-  free(pg);
+  if(prev != NULL)
+    prev->pg_next = NULL;
+  // free(pg);
+  *retpte = pg->pte;
+  return 0;
+}
 
+int print_global_list(struct mm_struct *mm) {
+  struct global_pg_t * pg = mm->global_fifo_pgn->head;
+  printf("+)----------------- Global FIFO List -----------------\n+ FPN: ");
+  while (pg != NULL) {
+    printf("[%d]", GETVAL(*pg->pte, PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT));
+    if (pg->pg_next != NULL) printf("->");
+    pg = pg->pg_next;
+  }
+  printf("\n+)--------------------------------------------------------\n");
   return 0;
 }
 

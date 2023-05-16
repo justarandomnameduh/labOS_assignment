@@ -95,7 +95,8 @@
 struct vm_rg_struct * init_vm_rg(int rg_start, int rg_endi);
 int enlist_vm_rg_node(struct vm_rg_struct **rglist, struct vm_rg_struct* rgnode);
 int enlist_pgn_node(struct pgn_t **pgnlist, int pgn);
-int enlist_global_pg_node(struct mm_struct* caller, struct global_pg_t **head, int pgn, uint32_t * pte);
+
+int enlist_global_pg_node(struct mm_struct* caller, struct global_pg_list *gplist, int pgn, uint32_t * pte);
 int vmap_page_range(struct pcb_t *caller, int addr, int pgnum,
                     struct framephy_struct *frames, struct vm_rg_struct *ret_rg);
 int vm_map_ram(struct pcb_t *caller, int astart, int send, int mapstart, int incpgnum, struct vm_rg_struct *ret_rg);
@@ -136,6 +137,7 @@ int validate_overlap_vm_area(struct pcb_t *caller, int vmaid, int vmastart, int 
 int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_struct *newrg);
 int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz);
 int find_victim_page(struct mm_struct* mm, int *pgn);
+int print_global_list(struct mm_struct *mm);
 int find_victim_page_global(struct mm_struct* mm, uint32_t** pte);
 struct vm_area_struct *get_vma_by_num(struct mm_struct *mm, int vmaid);
 
@@ -144,6 +146,8 @@ int MEMPHY_get_freefp(struct memphy_struct *mp, int *fpn);
 int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn);
 int MEMPHY_read(struct memphy_struct * mp, int addr, BYTE *value);
 int MEMPHY_write(struct memphy_struct * mp, int addr, BYTE data);
+
+int RAM_dump(struct memphy_struct * mram);
 int MEMPHY_dump(struct memphy_struct * mp);
 int init_memphy(struct memphy_struct *mp, int max_size, int randomflg);
 /* DEBUG */

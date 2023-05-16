@@ -13,7 +13,7 @@
 static int time_slot;
 static int num_cpus;
 static int done = 0;
-static struct global_pg_t *global_fifo;
+static struct global_pg_list * global_fifo;
 
 #ifdef MM_PAGING
 static int memramsz;
@@ -123,6 +123,7 @@ static void * ld_routine(void * args) {
 #ifdef MM_PAGING
 		proc->mm = malloc(sizeof(struct mm_struct));
 		init_mm(proc->mm, proc);
+		proc->mm->global_fifo_pgn = global_fifo;
 		proc->mram = mram;
 		proc->mswp = mswp;
 		proc->active_mswp = active_mswp;
@@ -201,14 +202,14 @@ int main(int argc, char * argv[]) {
 		printf("Usage: os [path to configure file]\n");
 		return 1;
 	}
+
+	global_fifo = (struct global_pg_list*)malloc(sizeof(struct global_pg_list));
+	pthread_mutex_init(&page_lock_global, NULL);
 	char path[100];
 	path[0] = '\0';
 	strcat(path, "input/");
 	strcat(path, argv[1]);
 	read_config(path);
-
-	global_fifo = (struct global_pg_t*)malloc(sizeof(struct global_pg_t));
-	pthread_mutex_init(&page_lock_global, NULL);
 
 	pthread_t * cpu = (pthread_t*)malloc(num_cpus * sizeof(pthread_t));
 	struct cpu_args * args =

@@ -103,7 +103,9 @@ int vmap_page_range(struct pcb_t *caller, // process call
   //  or fill all the mapped frames
   while (fpit != NULL && pgit < pgnum) {
     pte = caller_mm->pgd;
-    enlist_global_pg_node(caller_mm, &(caller_mm->global_fifo_pgn), pgn+pgit, &(pte[pgn + pgit]));
+    pte_set_fpn(&pte[pgn + pgit], fpit->fpn);
+    enlist_global_pg_node(caller_mm, (caller_mm->global_fifo_pgn), pgn+pgit, &pte[pgn + pgit]);
+    printf("[ALLOC - Mapping]\tPID #%d:\tMapped frame %d\n", caller->pid, fpit->fpn);
     fpit = fpit->fp_next;
     pgit++;
   }
@@ -149,6 +151,7 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
       // get victim page from global list
       find_victim_page_global(caller->mm, &vicpte);
       vicfpn = GETVAL(*vicpte, PAGING_PTE_DIRTY_MASK, PAGING_PTE_FPN_LOBIT);
+      printf("[Page Replacement]\tPID #%d:\tVictim:%d\tPTE:%08x\n", caller->pid, vicfpn, *vicpte);
       // get free frame from active_mswp
       MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
       // and move victim page to swap
@@ -183,6 +186,7 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
 int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int incpgnum, struct vm_rg_struct *ret_rg)
 {
   // not thread-safe due to global memory object accessing
+  pthread_mutex_lock(caller->page_lock);
   // ~find_victim_page_global()
   struct framephy_struct *frm_lst = NULL;
   int ret_alloc;
@@ -194,7 +198,7 @@ int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int inc
    *in endless procedure of swap-off to get frame and we have not provide
    *duplicate control mechanism, keep it simple
    */
-  pthread_mutex_lock(caller->page_lock);
+  
   ret_alloc = alloc_pages_range(caller, incpgnum, &frm_lst);
 
   if (ret_alloc < 0 && ret_alloc != -3000) {
@@ -306,13 +310,15 @@ int enlist_pgn_node(struct pgn_t **plist, int pgn)
   return 0;
 }
 
-int enlist_global_pg_node(struct mm_struct* caller, struct global_pg_t **head, int pgn, uint32_t * pte) {
+int enlist_global_pg_node(struct mm_struct* caller, struct global_pg_list *gplist, int pgn, uint32_t * pte) {
   struct global_pg_t *new_node = (struct global_pg_t *)malloc(sizeof(struct global_pg_t));
   new_node->pgn = pgn;
   new_node->pte = pte;
   new_node->caller = caller;
-  new_node->pg_next = *head;
-  *head = new_node;
+  new_node->pg_next = gplist->head;
+  if(gplist->head == NULL)
+    new_node->pg_next = NULL;
+  gplist->head = new_node;
 
   return 0;
 }

@@ -25,6 +25,10 @@ struct global_pg_t{
    struct mm_struct * caller;
 };
 
+struct global_pg_list{
+   struct global_pg_t* head;
+};
+
 /*
  *  Memory region struct
  */
@@ -68,7 +72,7 @@ struct mm_struct {
    struct pgn_t *fifo_pgn;
 
    /* list of free page (global scope) */
-   struct global_pg_t *global_fifo_pgn;
+   struct global_pg_list * global_fifo_pgn;
 };
 
 /*

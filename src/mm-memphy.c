@@ -6,6 +6,7 @@
 
 #include "mm.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 /*
  *  MEMPHY_mv_csr - move MEMPHY cursor
@@ -160,12 +161,30 @@ int MEMPHY_dump(struct memphy_struct * mp)
     /*TODO dump memphy contnt mp->storage
      *     for tracing the memory content
      */
-   // int i;
-   // for (i = 0; i < mp->maxsz; i++) {
-   //    printf("%c", mp->storage[i]);
-   // }
-   // printf("MEMPHY_dump.\n");
+   printf("+)----------- RAM status -----------\n");
+   printf("|\tLocation\tValue\n");
+   for (int i = 0; i < mp->maxsz; i++) {
+      if (mp->storage[i] != 0) {
+         printf("|\t#%d\t\t%d\n", i, mp->storage[i]);
+      }
+   }
+   printf("+)----------------------------------\n");
     return 0;
+}
+
+int RAM_dump(struct memphy_struct * mram) {
+   int freeCnt = 0;
+   struct framephy_struct *fpit = mram->free_fp_list;
+   while (fpit != NULL) {
+      fpit = fpit->fp_next;
+      freeCnt++;
+   }
+   printf("+)----------- RAM mapping status -----------\n");
+   printf("+ Number of mapped frames:\t%d\n", mram->maxsz / PAGING_PAGESZ - freeCnt);
+   printf("+ Number of remaining frames:\t%d\n", freeCnt);
+   printf("+)------------------------------------------\n");
+
+   return 0;
 }
 
 int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn)

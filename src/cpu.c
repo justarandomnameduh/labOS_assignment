@@ -1,9 +1,10 @@
-
 #include "cpu.h"
 #include "mem.h"
 #include "mm.h"
+#include <stdio.h>
 
 int calc(struct pcb_t * proc) {
+	printf("[Operation]\tPID #%d:\tCALC\n", proc->pid);
 	return ((unsigned long)proc & 0UL);
 }
 
