@@ -120,7 +120,9 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   caller->mm->symrgtbl[rgid].rg_end = old_sbrk + size;
 
   *alloc_addr = old_sbrk;
+#ifdef DBG__
   RAM_dump(caller->mram);
+#endif
   return 0;
 }
 
@@ -221,7 +223,9 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
       pte_set_swap(vicpte, 0, swpfpn);
     }
     enlist_global_pg_node(caller->mm, caller->mm->global_fifo_pgn, pgn, &(caller->mm->pgd[pgn]));
+#ifdef DBG__
     print_global_list(caller->mm);
+#endif
   }
 
   *fpn = PAGING_FPN(pte);
@@ -372,7 +376,9 @@ int pgwrite(
 #ifdef PAGETBL_DUMP
   print_pgtbl(proc, 0, -1); //print max TBL
 #endif
+#ifdef DBG__
   MEMPHY_dump(proc->mram);
+#endif
 #endif
 
   return __write(proc, 0, destination, offset, data);

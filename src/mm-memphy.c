@@ -161,6 +161,7 @@ int MEMPHY_dump(struct memphy_struct * mp)
     /*TODO dump memphy contnt mp->storage
      *     for tracing the memory content
      */
+#ifdef DBG__
    printf("+)----------- RAM status -----------\n");
    printf("|\tLocation\tValue\n");
    for (int i = 0; i < mp->maxsz; i++) {
@@ -169,6 +170,9 @@ int MEMPHY_dump(struct memphy_struct * mp)
       }
    }
    printf("+)----------------------------------\n");
+#else
+   print("MEMORY_dump.\n");
+#endif
     return 0;
 }
 

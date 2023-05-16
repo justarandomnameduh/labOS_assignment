@@ -4,7 +4,9 @@
 #include <stdio.h>
 
 int calc(struct pcb_t * proc) {
+#ifdef DBG__
 	printf("[Operation]\tPID #%d:\tCALC\n", proc->pid);
+#endif	
 	return ((unsigned long)proc & 0UL);
 }
 

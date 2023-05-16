@@ -105,7 +105,9 @@ int vmap_page_range(struct pcb_t *caller, // process call
     pte = caller_mm->pgd;
     pte_set_fpn(&pte[pgn + pgit], fpit->fpn);
     enlist_global_pg_node(caller_mm, (caller_mm->global_fifo_pgn), pgn+pgit, &pte[pgn + pgit]);
+#ifdef DBG__
     printf("[ALLOC - Mapping]\tPID #%d:\tMapped frame %d\n", caller->pid, fpit->fpn);
+#endif
     fpit = fpit->fp_next;
     pgit++;
   }
@@ -151,7 +153,9 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
       // get victim page from global list
       find_victim_page_global(caller->mm, &vicpte);
       vicfpn = GETVAL(*vicpte, PAGING_PTE_DIRTY_MASK, PAGING_PTE_FPN_LOBIT);
+#ifdef DBG__
       printf("[Page Replacement]\tPID #%d:\tVictim:%d\tPTE:%08x\n", caller->pid, vicfpn, *vicpte);
+#endif
       // get free frame from active_mswp
       MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
       // and move victim page to swap
