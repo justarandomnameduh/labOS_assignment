@@ -21,12 +21,14 @@ int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct rg_elmt)
   if (rg_elmt.rg_start >= rg_elmt.rg_end)
     return -1;
 
-  // TOFIX
+  // Allocate memory for the new region to be enlisted
   struct vm_rg_struct * new_node = (struct vm_rg_struct *)malloc(sizeof(struct vm_rg_struct));
+  // Initialize the new node with the properties of the given region
   new_node->rg_start = rg_elmt.rg_start;
   new_node->rg_end = rg_elmt.rg_end;
   new_node->rg_next = rg_elmt.rg_next;
 
+  // If there is already a head node in the free region list, set it as the next node of the new node
   if (rg_node != NULL)
     new_node->rg_next = rg_node;
 
@@ -68,6 +70,7 @@ struct vm_area_struct *get_vma_by_num(struct mm_struct *mm, int vmaid)
  */
 struct vm_rg_struct *get_symrg_byid(struct mm_struct *mm, int rgid)
 {
+  // Check that the input rgid is valid and within an acceptable range. If not, return NULL instead of a pointer to a struct.
   if(rgid < 0 || rgid > PAGING_MAX_SYMTBL_SZ)
     return NULL;
 
@@ -121,6 +124,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   caller->mm->symrgtbl[rgid].rg_start = old_sbrk;
   caller->mm->symrgtbl[rgid].rg_end = old_sbrk + size;
 
+  // Write the starting address of the new allocated region in the memory location pointed to by the alloc_addr pointer argument.
   *alloc_addr = old_sbrk;
 #ifdef DBG__
   RAM_dump(caller->mram);
@@ -207,7 +211,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
       // Update status of target page to online
       pte_set_fpn(&mm->pgd[pgn], vicfpn);
     } else {
-      find_victim_page_global(caller->mm, &vicpte);
+      find_victim_page(caller->mm, &vicpte);
       vicfpn = GETVAL(*vicpte, PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT);
       /* Get free frame in MEMSWP */
       MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
@@ -224,12 +228,12 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
       /* Update page table */
       pte_set_swap(vicpte, 0, swpfpn);
     }
-    enlist_global_pg_node(caller->mm, caller->mm->global_fifo_pgn, pgn, &(caller->mm->pgd[pgn]));
+    enlist_pgn_node(caller->mm, caller->mm->global_fifo_pgn, pgn, &(caller->mm->pgd[pgn]));
 #ifdef DBG__
-    print_global_list(caller->mm);
+    print_list_mm(caller->mm);
 #endif
   }
-
+  // Return the frame number corresponding to the given page number
   *fpn = PAGING_FPN(pte);
   *fpn = GETVAL(mm->pgd[pgn], PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT);
 
@@ -244,7 +248,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
  */
 int pg_getval(struct mm_struct *mm, int addr, BYTE *data, struct pcb_t *caller)
 {
-  // not thread-safe ~ pg_getpage - find_victim_page_global
+  // not thread-safe ~ pg_getpage - find_victim_page
   pthread_mutex_lock(caller->page_lock);
   int pgn = PAGING_PGN(addr);
   int off = PAGING_OFFST(addr);
@@ -272,7 +276,7 @@ int pg_getval(struct mm_struct *mm, int addr, BYTE *data, struct pcb_t *caller)
  */
 int pg_setval(struct mm_struct *mm, int addr, BYTE value, struct pcb_t *caller)
 {
-  // not thread-safe ~ pg_getpage - find_victim_page_global
+  // not thread-safe ~ pg_getpage - find_victim_page
   pthread_mutex_lock(caller->page_lock);
   int pgn = PAGING_PGN(addr);
   int off = PAGING_OFFST(addr);
@@ -448,7 +452,7 @@ int validate_overlap_vm_area(struct pcb_t *caller, int vmaid, int vmastart, int 
   //struct vm_area_struct *vma = caller->mm->mmap;
 
   /* TODO validate the planned memory area is not overlapped */
-  if (vmastart == vmaend) return -1;
+  if (vmastart >= vmaend) return -1;
 
   return 0;
 }
@@ -462,9 +466,12 @@ int validate_overlap_vm_area(struct pcb_t *caller, int vmaid, int vmastart, int 
 int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz)
 {
   struct vm_rg_struct * newrg = malloc(sizeof(struct vm_rg_struct));
+  // Align the size of additional virtual memory required to the nearest page boundary.
   int inc_amt = PAGING_PAGE_ALIGNSZ(inc_sz);
   int incnumpage =  inc_amt / PAGING_PAGESZ;
+  // Get a virtual memory area from the free list to hold the additional memory.
   struct vm_rg_struct *area = get_vm_area_node_at_brk(caller, vmaid, inc_sz, inc_amt);
+  // Obtain the curent virtual memory area using its ID.
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
 
   int old_end = cur_vma->vm_end;
@@ -485,47 +492,16 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz)
 
 }
 
-/*find_victim_page - find victim page
- *@caller: caller
- *@pgn: return page number
- * this version is limited to acess victim_page from pgd of its proc, not on a global scale
- */
-int find_victim_page(struct mm_struct *mm, int *retpgn)
-{
-  struct pgn_t *pg = mm->fifo_pgn;
 
-  /* TODO: Implement the theorical mechanism to find the victim page */
-  if (pg == NULL) {
-    printf("[ERROR] Empty page free list.\n");
-    return -1;
-  }
-  int last_page = 1;
-  // Collect last page from pg
-  while (pg->pg_next != NULL) {
-    pg = pg->pg_next;
-    last_page = 0;
-  }
-  // Assign victim page number to return pointer
-  *retpgn = pg->pgn;
-  // Check for last victim page condition
-  if (last_page) {
-    // Set page list to NULL
-    mm->fifo_pgn = NULL;
-  }
-  free(pg);
-
-  return 0;
-}
-
-/*find_victim_page_global - find victim page on a global scope
+/*find_victim_page - find victim page on a global scope
  *@caller: caller
  *@pgn: return page number
  * this is a better version since it can collect victim_page across procs running.
  */
-int find_victim_page_global(struct mm_struct *mm, uint32_t ** retpte)
+int find_victim_page(struct mm_struct *mm, uint32_t ** retpte)
 {
-  struct global_pg_t * pg = mm->global_fifo_pgn->head;
-  struct global_pg_t *prev = NULL;
+  struct pgn_t * pg = mm->global_fifo_pgn->head;
+  struct pgn_t *prev = NULL;
   /* TODO: Implement the theorical mechanism to find the victim page */
   if (pg == NULL) {
     printf("[ERROR] Empty free_pg_list!\n");
@@ -553,8 +529,8 @@ int find_victim_page_global(struct mm_struct *mm, uint32_t ** retpte)
   return 0;
 }
 
-int print_global_list(struct mm_struct *mm) {
-  struct global_pg_t * pg = mm->global_fifo_pgn->head;
+int print_list_mm(struct mm_struct *mm) {
+  struct pgn_t * pg = mm->global_fifo_pgn->head;
   printf("+)----------------- Global FIFO List -----------------\n+ FPN: ");
   while (pg != NULL) {
     printf("[%d]", GETVAL(*pg->pte, PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT));

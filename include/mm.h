@@ -94,11 +94,8 @@
 /* VM region prototypes */
 struct vm_rg_struct * init_vm_rg(int rg_start, int rg_endi);
 int enlist_vm_rg_node(struct vm_rg_struct **rglist, struct vm_rg_struct* rgnode);
-int enlist_pgn_node(struct pgn_t **pgnlist, int pgn);
-
-int enlist_global_pg_node(struct mm_struct* caller, struct global_pg_list *gplist, int pgn, uint32_t * pte);
-int vmap_page_range(struct pcb_t *caller, int addr, int pgnum,
-                    struct framephy_struct *frames, struct vm_rg_struct *ret_rg);
+int enlist_pgn_node(struct mm_struct* caller, struct global_pg_list *gplist, int pgn, uint32_t * pte);
+int vmap_page_range(struct pcb_t *caller, int addr, int pgnum, struct framephy_struct *frames, struct vm_rg_struct *ret_rg);
 int vm_map_ram(struct pcb_t *caller, int astart, int send, int mapstart, int incpgnum, struct vm_rg_struct *ret_rg);
 int alloc_pages_range(struct pcb_t *caller, int incpgnum, struct framephy_struct **frm_lst);
 int __swap_cp_page(struct memphy_struct *mpsrc, int srcfpn,
@@ -136,9 +133,7 @@ struct vm_rg_struct * get_symrg_byid(struct mm_struct* mm, int rgid);
 int validate_overlap_vm_area(struct pcb_t *caller, int vmaid, int vmastart, int vmaend);
 int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_struct *newrg);
 int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz);
-int find_victim_page(struct mm_struct* mm, int *pgn);
-int print_global_list(struct mm_struct *mm);
-int find_victim_page_global(struct mm_struct* mm, uint32_t** pte);
+int find_victim_page(struct mm_struct* mm, uint32_t** pte);
 struct vm_area_struct *get_vma_by_num(struct mm_struct *mm, int vmaid);
 
 /* MEM/PHY protypes */
@@ -154,7 +149,7 @@ int init_memphy(struct memphy_struct *mp, int max_size, int randomflg);
 int print_list_fp(struct framephy_struct *fp);
 int print_list_rg(struct vm_rg_struct *rg);
 int print_list_vma(struct vm_area_struct *rg);
-
+int print_list_mm(struct mm_struct *mm);
 
 int print_list_pgn(struct pgn_t *ip);
 int print_pgtbl(struct pcb_t *ip, uint32_t start, uint32_t end);

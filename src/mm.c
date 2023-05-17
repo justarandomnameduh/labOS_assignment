@@ -104,7 +104,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
   while (fpit != NULL && pgit < pgnum) {
     pte = caller_mm->pgd;
     pte_set_fpn(&pte[pgn + pgit], fpit->fpn);
-    enlist_global_pg_node(caller_mm, (caller_mm->global_fifo_pgn), pgn+pgit, &pte[pgn + pgit]);
+    enlist_pgn_node(caller_mm, (caller_mm->global_fifo_pgn), pgn+pgit, &pte[pgn + pgit]);
 #ifdef DBG__
     printf("[ALLOC - Mapping]\tPID #%d:\tMapped frame %d\n", caller->pid, fpit->fpn);
 #endif
@@ -151,7 +151,7 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
       swpfpn = vicfpn = -1;
       vicpte = NULL;
       // get victim page from global list
-      find_victim_page_global(caller->mm, &vicpte);
+      find_victim_page(caller->mm, &vicpte);
       vicfpn = GETVAL(*vicpte, PAGING_PTE_DIRTY_MASK, PAGING_PTE_FPN_LOBIT);
 #ifdef DBG__
       printf("[Page Replacement]\tPID #%d:\tVictim:%d\tPTE:%08x\n", caller->pid, vicfpn, *vicpte);
@@ -191,7 +191,7 @@ int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int inc
 {
   // not thread-safe due to global memory object accessing
   pthread_mutex_lock(caller->page_lock);
-  // ~find_victim_page_global()
+  // ~find_victim_page()
   struct framephy_struct *frm_lst = NULL;
   int ret_alloc;
 
@@ -303,19 +303,8 @@ int enlist_vm_rg_node(struct vm_rg_struct **rglist, struct vm_rg_struct* rgnode)
   return 0;
 }
 
-int enlist_pgn_node(struct pgn_t **plist, int pgn)
-{
-  struct pgn_t* pnode = malloc(sizeof(struct pgn_t));
-
-  pnode->pgn = pgn;
-  pnode->pg_next = *plist;
-  *plist = pnode;
-
-  return 0;
-}
-
-int enlist_global_pg_node(struct mm_struct* caller, struct global_pg_list *gplist, int pgn, uint32_t * pte) {
-  struct global_pg_t *new_node = (struct global_pg_t *)malloc(sizeof(struct global_pg_t));
+int enlist_pgn_node(struct mm_struct* caller, struct global_pg_list *gplist, int pgn, uint32_t * pte) {
+  struct pgn_t *new_node = (struct pgn_t *)malloc(sizeof(struct pgn_t));
   new_node->pgn = pgn;
   new_node->pte = pte;
   new_node->caller = caller;
