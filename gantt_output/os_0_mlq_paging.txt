@@ -1,31 +1,32 @@
 Time slot   0
 ld_routine
 	Loaded a process at input/proc/p0s, PID: 1 PRIO: 0
+Time slot   1
 	CPU 1: Dispatched process  1
 [Operation]	PID #1:	CALC
-Time slot   1
+Time slot   2
 [Operation]	PID #1:	ALLOC
+	Loaded a process at input/proc/p1s, PID: 2 PRIO: 15
 [Mapping for ALLOC]	PID #1 with frame mapped to 1
 [Mapping for ALLOC]	PID #1 with frame mapped to 0
  RAM mapping 
  Number of mapped frames:   2
  Number of remaining frames:	4094
 --------------------
-Time slot   2
+Time slot   3
 [Operation]	PID #1:	ALLOC
-	Loaded a process at input/proc/p1s, PID: 2 PRIO: 15
 [Mapping for ALLOC]	PID #1 with frame mapped to 3
 [Mapping for ALLOC]	PID #1 with frame mapped to 2
+	CPU 0: Dispatched process  2
+[Operation]	PID #2:	CALC
  RAM mapping 
  Number of mapped frames:   4
  Number of remaining frames:	4092
 --------------------
-	CPU 0: Dispatched process  2
-[Operation]	PID #2:	CALC
-Time slot   3
+Time slot   4
 [Operation]	PID #1:	FREE
 [Operation]	PID #2:	CALC
-Time slot   4
+Time slot   5
 [Operation]	PID #1:	ALLOC
 get free vm success.
 [Operation]	PID #2:	CALC
@@ -33,21 +34,23 @@ get free vm success.
  Number of mapped frames:   4
  Number of remaining frames:	4092
 --------------------
-Time slot   5
+Time slot   6
 [Operation]	PID #1:	WRITE
 write region=1 offset=20 value=100
 print_pgtbl: 0 - 1024
 00000000: 80000001
-[Operation]	PID #2:	CALC
 00000004: 80000000
 00000008: 80000003
 00000012: 80000002
 MEMPHY_dump:
 |Location -- Value
+[Operation]	PID #2:	CALC
 -----------------------
-Time slot   6
+Time slot   7
+[Operation]	PID #2:	CALC
 	CPU 1: Put process  1 to run queue
 	CPU 1: Dispatched process  1
+[Operation]	PID #1:	READ
 read region=1 offset=20 value=100
 print_pgtbl: 0 - 1024
 00000000: 80000001
@@ -57,9 +60,9 @@ print_pgtbl: 0 - 1024
 MEMPHY_dump:
 |Location -- Value
 |476 -- 100
-[Operation]	PID #2:	CALC
 -----------------------
-Time slot   7
+Time slot   8
+[Operation]	PID #2:	CALC
 [Operation]	PID #1:	WRITE
 write region=2 offset=20 value=102
 print_pgtbl: 0 - 1024
@@ -69,12 +72,12 @@ print_pgtbl: 0 - 1024
 00000012: 80000002
 MEMPHY_dump:
 |Location -- Value
-[Operation]	PID #2:	CALC
 |476 -- 100
 -----------------------
 Invalid address: region not found. READ operation failed.
-Time slot   8
+Time slot   9
 Invalid address: region not found. READ operation failed.
+[Operation]	PID #1:	READ
 read region=2 offset=20 value=0
 print_pgtbl: 0 - 1024
 00000000: 80000001
@@ -88,7 +91,7 @@ MEMPHY_dump:
 	CPU 0: Dispatched process  2
 [Operation]	PID #2:	CALC
 -----------------------
-Time slot   9
+Time slot  10
 [Operation]	PID #1:	WRITE
 write region=3 offset=20 value=103
 print_pgtbl: 0 - 1024
@@ -102,8 +105,9 @@ MEMPHY_dump:
 [Operation]	PID #2:	CALC
 -----------------------
 Invalid address: region not found. READ operation failed.
-Time slot  10
+Time slot  11
 Invalid address: region not found. READ operation failed.
+[Operation]	PID #1:	READ
 read region=3 offset=20 value=0
 print_pgtbl: 0 - 1024
 00000000: 80000001
@@ -115,18 +119,18 @@ MEMPHY_dump:
 |476 -- 100
 [Operation]	PID #2:	CALC
 -----------------------
-Time slot  11
+Time slot  12
 [Operation]	PID #1:	CALC
 [Operation]	PID #2:	CALC
-Time slot  12
+Time slot  13
 	CPU 1: Put process  1 to run queue
 	CPU 1: Dispatched process  1
 [Operation]	PID #1:	FREE
 [Operation]	PID #2:	CALC
-Time slot  13
+Time slot  14
 [Operation]	PID #1:	CALC
 	CPU 0: Processed  2 has finished
 	CPU 0 stopped
-Time slot  14
+Time slot  15
 	CPU 1: Processed  1 has finished
 	CPU 1 stopped

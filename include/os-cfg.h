@@ -5,7 +5,7 @@
 #define MAX_PRIO 140
 
 #define MM_PAGING
-#define MM_FIXED_MEMSZ
+// #define MM_FIXED_MEMSZ
 #define DBG__
 #define GANTT__
 //#define VMDBG 1

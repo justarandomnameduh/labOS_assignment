@@ -347,7 +347,9 @@ int pgread(
 {
   BYTE data;
   int val = __read(proc, 0, source, offset, &data);
-
+#ifdef DBG__
+	printf("[Operation]\tPID #%d:\tREAD\n", proc->pid);
+#endif
   destination = (uint32_t) data;
 #ifdef IODUMP
   printf("read region=%d offset=%d value=%d\n", source, offset, data);

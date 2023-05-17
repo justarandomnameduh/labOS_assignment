@@ -2,12 +2,10 @@ Time slot   0
 ld_routine
 Time slot   1
 	Loaded a process at input/proc/p0s, PID: 1 PRIO: 130
-	CPU 2: Dispatched process  1
+	CPU 1: Dispatched process  1
 [Operation]	PID #1:	CALC
 Time slot   2
 	Loaded a process at input/proc/s3, PID: 2 PRIO: 39
-	CPU 3: Dispatched process  2
-[Operation]	PID #2:	CALC
 [Operation]	PID #1:	ALLOC
 [Mapping for ALLOC]	PID #1 with frame mapped to 1
 [Mapping for ALLOC]	PID #1 with frame mapped to 0
@@ -15,25 +13,25 @@ Time slot   2
  Number of mapped frames:   2
  Number of remaining frames:	6
 --------------------
-Time slot   3
-	CPU 2: Put process  1 to run queue
-	CPU 2: Dispatched process  1
-[Operation]	PID #1:	ALLOC
+	CPU 0: Dispatched process  2
 [Operation]	PID #2:	CALC
+Time slot   3
+[Operation]	PID #2:	CALC
+	CPU 1: Put process  1 to run queue
+	CPU 1: Dispatched process  1
+[Operation]	PID #1:	ALLOC
 [Mapping for ALLOC]	PID #1 with frame mapped to 3
 [Mapping for ALLOC]	PID #1 with frame mapped to 2
  RAM mapping 
  Number of mapped frames:   4
  Number of remaining frames:	4
 --------------------
-	Loaded a process at input/proc/m1s, PID: 3 PRIO: 15
 Time slot   4
-	CPU 3: Put process  2 to run queue
-	CPU 1: Dispatched process  3
-[Operation]	PID #3:	ALLOC
 [Operation]	PID #1:	FREE
-	CPU 3: Dispatched process  2
-[Operation]	PID #2:	CALC
+	CPU 0: Put process  2 to run queue
+	Loaded a process at input/proc/m1s, PID: 3 PRIO: 15
+	CPU 0: Dispatched process  3
+[Operation]	PID #3:	ALLOC
 [Mapping for ALLOC]	PID #3 with frame mapped to 5
 [Mapping for ALLOC]	PID #3 with frame mapped to 4
  RAM mapping 
@@ -41,32 +39,31 @@ Time slot   4
  Number of remaining frames:	2
 --------------------
 Time slot   5
-	CPU 2: Put process  1 to run queue
-	CPU 2: Dispatched process  1
-[Operation]	PID #1:	ALLOC
-get free vm success.
- RAM mapping 
- Number of mapped frames:   6
+	CPU 3: Dispatched process  2
 [Operation]	PID #2:	CALC
- Number of remaining frames:	2
---------------------
 [Operation]	PID #3:	ALLOC
 [Mapping for ALLOC]	PID #3 with frame mapped to 6
  RAM mapping 
  Number of mapped frames:   7
  Number of remaining frames:	1
 --------------------
+	CPU 1: Put process  1 to run queue
+	CPU 1: Dispatched process  1
+[Operation]	PID #1:	ALLOC
+get free vm success.
+ RAM mapping 
+ Number of mapped frames:   7
+ Number of remaining frames:	1
+--------------------
 	Loaded a process at input/proc/s2, PID: 4 PRIO: 120
-Time slot   6
-	CPU 3: Put process  2 to run queue
-	CPU 3: Dispatched process  2
 [Operation]	PID #2:	CALC
-	CPU 1: Put process  3 to run queue
-	CPU 0: Dispatched process  4
-[Operation]	PID #4:	CALC
 [Operation]	PID #1:	WRITE
-	CPU 1: Dispatched process  3
+	CPU 2: Dispatched process  4
+Time slot   6
+	CPU 0: Put process  3 to run queue
+[Operation]	PID #4:	CALC
 write region=1 offset=20 value=100
+	CPU 0: Dispatched process  3
 [Operation]	PID #3:	FREE
 print_pgtbl: 0 - 1024
 00000000: 80000001
@@ -77,16 +74,10 @@ MEMPHY_dump:
 |Location -- Value
 -----------------------
 Time slot   7
-[Operation]	PID #2:	CALC
-[Operation]	PID #3:	ALLOC
-	CPU 2: Put process  1 to run queue
-get free vm success.
- RAM mapping 
- Number of mapped frames:   7
- Number of remaining frames:	1
---------------------
-[Operation]	PID #4:	CALC
-	CPU 2: Dispatched process  1
+	CPU 1: Put process  1 to run queue
+	CPU 3: Put process  2 to run queue
+	CPU 1: Dispatched process  1
+[Operation]	PID #1:	READ
 read region=1 offset=20 value=100
 print_pgtbl: 0 - 1024
 00000000: 80000001
@@ -95,29 +86,36 @@ print_pgtbl: 0 - 1024
 00000012: 80000002
 MEMPHY_dump:
 |Location -- Value
-	Loaded a process at input/proc/m0s, PID: 5 PRIO: 120
+[Operation]	PID #3:	ALLOC
 |476 -- 100
------------------------
-Time slot   8
-	CPU 3: Put process  2 to run queue
 	CPU 3: Dispatched process  2
-	CPU 1: Put process  3 to run queue
+get free vm success.
+[Operation]	PID #2:	CALC
+[Operation]	PID #4:	CALC
+-----------------------
+ RAM mapping 
+ Number of mapped frames:   7
+ Number of remaining frames:	1
+--------------------
+	Loaded a process at input/proc/m0s, PID: 5 PRIO: 120
+[Operation]	PID #2:	CALC
+	CPU 2: Put process  4 to run queue
 [Operation]	PID #1:	WRITE
-	CPU 1: Dispatched process  3
 write region=2 offset=20 value=102
+print_pgtbl: 0 - 1024	CPU 2: Dispatched process  5
+[Operation]	PID #5:	ALLOC
+Time slot   8
+	CPU 0: Put process  3 to run queue
+	CPU 0: Dispatched process  3
 [Operation]	PID #3:	FREE
-print_pgtbl: 0 - 1024
+
 00000000: 80000001
 00000004: 80000000
 00000008: 80000003
 00000012: 80000002
 MEMPHY_dump:
 |Location -- Value
-	CPU 0: Put process  4 to run queue
 |476 -- 100
-	CPU 0: Dispatched process  5
-[Operation]	PID #5:	ALLOC
-[Operation]	PID #2:	CALC
 -----------------------
 Invalid address: region not found. READ operation failed.
 [Page Replacement]	PID #5 with Victim frame number: 0	PTE:80000001
@@ -128,36 +126,38 @@ Invalid address: region not found. READ operation failed.
  Number of remaining frames:	0
 --------------------
 	Loaded a process at input/proc/p1s, PID: 6 PRIO: 15
+	CPU 3: Put process  2 to run queue
+[Operation]	PID #5:	ALLOC
+	CPU 1: Put process  1 to run queue
+	CPU 1: Dispatched process  6
+[Operation]	PID #6:	CALC
+	CPU 3: Dispatched process  2
+[Page Replacement]	PID #5 with Victim frame number: 0	PTE:80000000
+[Operation]	PID #3:	FREE
 Time slot   9
 [Operation]	PID #2:	CALC
-	CPU 2: Put process  1 to run queue
-	CPU 2: Dispatched process  6
-[Operation]	PID #6:	CALC
-[Operation]	PID #3:	FREE
-[Operation]	PID #5:	ALLOC
-[Page Replacement]	PID #5 with Victim frame number: 0	PTE:80000000
 [Mapping for ALLOC]	PID #5 with frame mapped to 0
  RAM mapping 
  Number of mapped frames:   8
  Number of remaining frames:	0
 --------------------
-Time slot  10
-	CPU 3: Put process  2 to run queue
-	CPU 3: Dispatched process  2
 [Operation]	PID #2:	CALC
+	CPU 2: Put process  5 to run queue
 [Operation]	PID #6:	CALC
-	CPU 1: Processed  3 has finished
-	CPU 1: Dispatched process  4
+Time slot  10
+	CPU 2: Dispatched process  4
 [Operation]	PID #4:	CALC
-	CPU 0: Put process  5 to run queue
+	CPU 0: Processed  3 has finished
 	CPU 0: Dispatched process  5
 [Operation]	PID #5:	FREE
-	Loaded a process at input/proc/s0, PID: 7 PRIO: 38
-[Operation]	PID #2:	CALC
-	CPU 2: Put process  6 to run queue
-	CPU 2: Dispatched process  6
-[Operation]	PID #6:	CALC
 Time slot  11
+	CPU 3: Put process  2 to run queue
+	Loaded a process at input/proc/s0, PID: 7 PRIO: 38
+	CPU 3: Dispatched process  2
+	CPU 1: Put process  6 to run queue
+	CPU 1: Dispatched process  6
+[Operation]	PID #6:	CALC
+[Operation]	PID #2:	CALC
 [Operation]	PID #4:	CALC
 [Operation]	PID #5:	ALLOC
 get free vm success.
@@ -165,34 +165,14 @@ get free vm success.
  Number of mapped frames:   8
  Number of remaining frames:	0
 --------------------
-	CPU 3: Put process  2 to run queue
+[Operation]	PID #2:	CALC
+	CPU 2: Put process  4 to run queue
 [Operation]	PID #6:	CALC
-	CPU 3: Dispatched process  7
-[Operation]	PID #7:	CALC
-	CPU 1: Put process  4 to run queue
 Time slot  12
-	CPU 1: Dispatched process  2
-[Operation]	PID #2:	CALC
 	CPU 0: Put process  5 to run queue
-	CPU 0: Dispatched process  4
-[Operation]	PID #4:	CALC
-Time slot  13
-	CPU 2: Put process  6 to run queue
-	CPU 2: Dispatched process  6
-[Operation]	PID #6:	CALC
-[Operation]	PID #4:	CALC
-[Operation]	PID #2:	CALC
+	CPU 0: Dispatched process  7
 [Operation]	PID #7:	CALC
-Time slot  14
-[Operation]	PID #6:	CALC
-	CPU 1: Put process  2 to run queue
-	CPU 3: Put process  7 to run queue
-	CPU 1: Dispatched process  2
-[Operation]	PID #2:	CALC
-	CPU 3: Dispatched process  7
-[Operation]	PID #7:	CALC
-	CPU 0: Put process  4 to run queue
-	CPU 0: Dispatched process  5
+	CPU 2: Dispatched process  5
 [Operation]	PID #5:	WRITE
 write region=1 offset=20 value=102
 print_pgtbl: 0 - 768
@@ -203,15 +183,17 @@ MEMPHY_dump:
 |Location -- Value
 |476 -- 100
 -----------------------
-Time slot  15
-	CPU 2: Put process  6 to run queue
-	CPU 2: Dispatched process  6
-[Operation]	PID #6:	CALC
+	CPU 3: Put process  2 to run queue
+Time slot  13
+	CPU 3: Dispatched process  2
 [Operation]	PID #2:	CALC
-[Operation]	PID #7:	CALC
+	CPU 1: Put process  6 to run queue
 [Operation]	PID #5:	WRITE
+	CPU 1: Dispatched process  6
+[Operation]	PID #6:	CALC
 write region=2 offset=1000 value=1
-print_pgtbl: 0 - 768
+print_pgtbl: 0 - 768[Operation]	PID #7:	CALC
+
 00000000: 80000000
 00000004: 80000007
 00000008: 80000000
@@ -221,56 +203,83 @@ MEMPHY_dump:
 |476 -- 100
 -----------------------
 Invalid address: out of bound. READ operation failed.
+[Operation]	PID #2:	CALC
+Time slot  14
+	CPU 2: Processed  5 has finished
+	CPU 0: Put process  7 to run queue
+	CPU 2: Dispatched process  4
+[Operation]	PID #4:	CALC
+[Operation]	PID #6:	CALC
+	CPU 0: Dispatched process  7
+[Operation]	PID #7:	CALC
+	CPU 3: Put process  2 to run queue
+Time slot  15
+	CPU 3: Dispatched process  2
+	CPU 1: Put process  6 to run queue
+[Operation]	PID #4:	CALC
+[Operation]	PID #7:	CALC
+	CPU 1: Dispatched process  6
+[Operation]	PID #6:	CALC
+[Operation]	PID #2:	CALC
+[Operation]	PID #2:	CALC
 Time slot  16
+[Operation]	PID #6:	CALC
+	CPU 2: Put process  4 to run queue
 	Loaded a process at input/proc/s1, PID: 8 PRIO: 0
-[Operation]	PID #6:	CALC
-	CPU 1: Put process  2 to run queue
-	CPU 1: Dispatched process  8
+	CPU 2: Dispatched process  4
+[Operation]	PID #4:	CALC
+	CPU 0: Put process  7 to run queue
+	CPU 0: Dispatched process  8
 [Operation]	PID #8:	CALC
-	CPU 3: Put process  7 to run queue
+	CPU 3: Put process  2 to run queue
+[Operation]	PID #4:	CALC
+	CPU 1: Put process  6 to run queue
 	CPU 3: Dispatched process  7
-	CPU 0: Processed  5 has finished
 [Operation]	PID #7:	CALC
-	CPU 0: Dispatched process  2
-[Operation]	PID #2:	CALC
+[Operation]	PID #8:	CALC
+	CPU 1: Dispatched process  6
 Time slot  17
-	CPU 2: Put process  6 to run queue
-	CPU 2: Dispatched process  6
 [Operation]	PID #6:	CALC
-[Operation]	PID #8:	CALC
-[Operation]	PID #7:	CALC
-[Operation]	PID #2:	CALC
-	CPU 3: Put process  7 to run queue
 Time slot  18
-	CPU 3: Dispatched process  7
-[Operation]	PID #7:	CALC
 [Operation]	PID #6:	CALC
-	CPU 1: Put process  8 to run queue
-	CPU 1: Dispatched process  8
-[Operation]	PID #8:	CALC
-	CPU 0: Put process  2 to run queue
-	CPU 0: Dispatched process  2
+[Operation]	PID #7:	CALC
+	CPU 2: Put process  4 to run queue
+	CPU 2: Dispatched process  2
 [Operation]	PID #2:	CALC
-[Operation]	PID #7:	CALC
-Time slot  19
-	CPU 2: Put process  6 to run queue
-	CPU 2: Dispatched process  6
-[Operation]	PID #6:	CALC
+	CPU 0: Put process  8 to run queue
+	CPU 0: Dispatched process  8
 [Operation]	PID #8:	CALC
-	CPU 0: Processed  2 has finished
-	CPU 0: Dispatched process  4
+Time slot  19
+	CPU 1: Put process  6 to run queue
+	CPU 3: Put process  7 to run queue
+	CPU 1: Dispatched process  6
+[Operation]	PID #2:	CALC
+[Operation]	PID #6:	CALC
+	CPU 3: Dispatched process  7
+[Operation]	PID #8:	CALC
+[Operation]	PID #7:	CALC
+[Operation]	PID #7:	CALC
+	CPU 2: Put process  2 to run queue
+Time slot  20
+	CPU 2: Dispatched process  2
+[Operation]	PID #2:	CALC
+	CPU 0: Put process  8 to run queue
+	CPU 0: Dispatched process  8
+	CPU 1: Processed  6 has finished
+[Operation]	PID #8:	CALC
+	CPU 1: Dispatched process  4
 [Operation]	PID #4:	CALC
 	CPU 3: Put process  7 to run queue
-Time slot  20
+[Operation]	PID #4:	CALC
+Time slot  21
+	CPU 2: Processed  2 has finished
 	CPU 3: Dispatched process  7
 [Operation]	PID #7:	CALC
-	CPU 2: Processed  6 has finished
-	CPU 1: Put process  8 to run queue
-	CPU 2: Dispatched process  1
-	CPU 1: Dispatched process  8
-Invalid address: region not found. READ operation failed.
 [Operation]	PID #8:	CALC
-read region=2 offset=20 value=23
+	CPU 2: Dispatched process  1
+Invalid address: region not found. READ operation failed.
+[Operation]	PID #1:	READ
+read region=2 offset=20 value=-56
 print_pgtbl: 0 - 1024
 00000000: c0000000
 00000004: c0000020
@@ -280,12 +289,11 @@ MEMPHY_dump:
 |Location -- Value
 |20 -- 102
 |476 -- 100
-[Operation]	PID #4:	CALC
 -----------------------
 [Operation]	PID #7:	CALC
-Time slot  21
 [Operation]	PID #1:	WRITE
 write region=3 offset=20 value=103
+Time slot  22
 print_pgtbl: 0 - 1024
 00000000: c0000000
 00000004: c0000020
@@ -294,25 +302,24 @@ print_pgtbl: 0 - 1024
 MEMPHY_dump:
 |Location -- Value
 |20 -- 102
-[Operation]	PID #8:	CALC
+	CPU 0: Put process  8 to run queue
+	CPU 1: Put process  4 to run queue
 |476 -- 100
-	CPU 0: Put process  4 to run queue
-	CPU 0: Dispatched process  4
+	CPU 1: Dispatched process  4
 [Operation]	PID #4:	CALC
+	CPU 0: Dispatched process  8
+[Operation]	PID #8:	CALC
 -----------------------
 Invalid address: region not found. READ operation failed.
 	CPU 3: Put process  7 to run queue
-	CPU 1: Put process  8 to run queue
-	CPU 1: Dispatched process  8
-[Operation]	PID #4:	CALC
-	CPU 3: Dispatched process  7
-[Operation]	PID #7:	CALC
-[Operation]	PID #8:	CALC
-Time slot  22
+	CPU 0: Processed  8 has finished
+Time slot  23
 	CPU 2: Put process  1 to run queue
+	CPU 0 stopped
 	CPU 2: Dispatched process  1
 Invalid address: region not found. READ operation failed.
-read region=3 offset=20 value=23
+[Operation]	PID #1:	READ
+read region=3 offset=20 value=-56
 print_pgtbl: 0 - 1024
 00000000: c0000000
 00000004: c0000020
@@ -322,37 +329,34 @@ MEMPHY_dump:
 |Location -- Value
 |20 -- 102
 |476 -- 100
+	CPU 3: Dispatched process  7
+[Operation]	PID #7:	CALC
+[Operation]	PID #4:	CALC
 -----------------------
 [Operation]	PID #7:	CALC
-Time slot  23
 [Operation]	PID #1:	CALC
-	CPU 0: Put process  4 to run queue
-	CPU 1: Processed  8 has finished
-	CPU 1 stopped
-	CPU 0: Dispatched process  4
-[Operation]	PID #4:	CALC
 Time slot  24
-	CPU 2: Put process  1 to run queue
+	CPU 1: Put process  4 to run queue
+	CPU 1: Dispatched process  4
 [Operation]	PID #4:	CALC
+Time slot  25
 	CPU 3: Put process  7 to run queue
 	CPU 3: Dispatched process  7
+	CPU 2: Put process  1 to run queue
 [Operation]	PID #7:	CALC
 	CPU 2: Dispatched process  1
 [Operation]	PID #1:	FREE
-Time slot  25
-[Operation]	PID #7:	CALC
-	CPU 0: Put process  4 to run queue
-[Operation]	PID #1:	CALC
-	CPU 0: Dispatched process  4
-[Operation]	PID #4:	CALC
+	CPU 1: Processed  4 has finished
+	CPU 1 stopped
 Time slot  26
+[Operation]	PID #7:	CALC
+[Operation]	PID #1:	CALC
+Time slot  27
+	CPU 2: Processed  1 has finished
 	CPU 3: Put process  7 to run queue
+	CPU 2 stopped
 	CPU 3: Dispatched process  7
 [Operation]	PID #7:	CALC
-	CPU 2: Processed  1 has finished
-	CPU 2 stopped
-	CPU 0: Processed  4 has finished
-	CPU 0 stopped
-Time slot  27
+Time slot  28
 	CPU 3: Processed  7 has finished
 	CPU 3 stopped
