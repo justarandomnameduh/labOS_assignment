@@ -162,14 +162,14 @@ int MEMPHY_dump(struct memphy_struct * mp)
      *     for tracing the memory content
      */
 #ifdef DBG__
-   printf("+)----------- RAM status -----------\n");
-   printf("|\tLocation\tValue\n");
+   printf("MEMPHY_dump:\n");
+   printf("|Location -- Value\n");
    for (int i = 0; i < mp->maxsz; i++) {
       if (mp->storage[i] != 0) {
-         printf("|\t#%d\t\t%d\n", i, mp->storage[i]);
+         printf("|%d -- %d\n", i, mp->storage[i]);
       }
    }
-   printf("+)----------------------------------\n");
+   printf("-----------------------\n");
 #else
    print("MEMORY_dump.\n");
 #endif
@@ -177,16 +177,16 @@ int MEMPHY_dump(struct memphy_struct * mp)
 }
 
 int RAM_dump(struct memphy_struct * mram) {
-   int freeCnt = 0;
+   int f = 0;
    struct framephy_struct *fpit = mram->free_fp_list;
    while (fpit != NULL) {
       fpit = fpit->fp_next;
-      freeCnt++;
+      f++;
    }
-   printf("+)----------- RAM mapping status -----------\n");
-   printf("+ Number of mapped frames:\t%d\n", mram->maxsz / PAGING_PAGESZ - freeCnt);
-   printf("+ Number of remaining frames:\t%d\n", freeCnt);
-   printf("+)------------------------------------------\n");
+   printf(" RAM mapping \n");
+   printf(" Number of mapped frames:   %d\n", mram->maxsz / PAGING_PAGESZ - f);
+   printf(" Number of remaining frames:\t%d\n", f);
+   printf("--------------------\n");
 
    return 0;
 }

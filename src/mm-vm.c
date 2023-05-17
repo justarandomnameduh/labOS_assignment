@@ -217,11 +217,9 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
       MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
       // swapping between MEMRAM and MEMSWP
       /* Do swap frame from MEMRAM to MEMSWP and vice versa*/
-      /* Copy victim frame to swap */
       __swap_cp_page(caller->mram, vicfpn, caller->active_mswp, swpfpn);
-      /* Copy target frame from swap to mem */
       __swap_cp_page(caller->active_mswp, tgtfpn, caller->mram, vicfpn);
-      // assign previous frame in SWP as free for future allocation
+      // Put the target frame in the free frame list of the active memory swap for the process
       MEMPHY_put_freefp(caller->active_mswp, tgtfpn);
       // Update status of target page to online
       pte_set_fpn(&mm->pgd[pgn], vicfpn);
@@ -531,13 +529,13 @@ int find_victim_page(struct mm_struct *mm, uint32_t ** retpte)
 
 int print_list_mm(struct mm_struct *mm) {
   struct pgn_t * pg = mm->global_fifo_pgn->head;
-  printf("+)----------------- Global FIFO List -----------------\n+ FPN: ");
+  printf(" Global FIFO List \n ");
   while (pg != NULL) {
     printf("[%d]", GETVAL(*pg->pte, PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT));
     if (pg->pg_next != NULL) printf("->");
     pg = pg->pg_next;
   }
-  printf("\n+)--------------------------------------------------------\n");
+  printf("\n-------------------------------------\n");
   return 0;
 }
 
