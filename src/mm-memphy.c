@@ -171,7 +171,7 @@ int MEMPHY_dump(struct memphy_struct * mp)
    }
    printf("-----------------------\n");
 #else
-   print("MEMORY_dump.\n");
+   printf("MEMORY_dump.\n");
 #endif
     return 0;
 }
