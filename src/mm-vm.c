@@ -100,6 +100,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
 
     *alloc_addr = rgnode.rg_start;
 #ifdef DBG__
+    printf("get free vm success.\n");
     RAM_dump(caller->mram);
 #endif
     return 0;
@@ -155,6 +156,10 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
   rgptr->rg_start = rgptr->rg_end = -1;
   rgptr->rg_next = NULL;
 
+
+#ifdef DBG__
+	printf("[Operation]\tPID #%d:\tFREE\n", caller->pid);
+#endif
   return 0;
 }
 
@@ -166,6 +171,10 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
 int pgalloc(struct pcb_t *proc, uint32_t size, uint32_t reg_index)
 {
   int addr;
+
+#ifdef DBG__
+	printf("[Operation]\tPID #%d:\tALLOC\n", proc->pid);
+#endif
 
   /* By default using vmaid = 0 */
   return __alloc(proc, 0, reg_index, size, &addr);
@@ -210,9 +219,13 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
       MEMPHY_put_freefp(caller->active_mswp, tgtfpn);
       // Update status of target page to online
       pte_set_fpn(&mm->pgd[pgn], vicfpn);
+      printf("MEMPHY get freefp \n");
     } else {
       find_victim_page(caller->mm, &vicpte);
       vicfpn = GETVAL(*vicpte, PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT);
+#ifdef DBG__
+      printf("[Page Replacement]\tPID #%d:\tVictim:%d\n", caller->pid, vicfpn);
+#endif
       /* Get free frame in MEMSWP */
       MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
       // swapping between MEMRAM and MEMSWP
@@ -221,10 +234,10 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
       __swap_cp_page(caller->active_mswp, tgtfpn, caller->mram, vicfpn);
       // Put the target frame in the free frame list of the active memory swap for the process
       MEMPHY_put_freefp(caller->active_mswp, tgtfpn);
-      // Update status of target page to online
-      pte_set_fpn(&mm->pgd[pgn], vicfpn);
       /* Update page table */
       pte_set_swap(vicpte, 0, swpfpn);
+      // Update status of target page to online
+      pte_set_fpn(&mm->pgd[pgn], vicfpn);   
     }
     enlist_pgn_node(caller->mm, caller->mm->global_fifo_pgn, pgn, &(caller->mm->pgd[pgn]));
 #ifdef DBG__
@@ -307,12 +320,17 @@ int __read(struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
 
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
 
-  if(currg == NULL || cur_vma == NULL ||
-      currg->rg_start + offset >= currg->rg_end) /* Invalid memory identify */
-	  {
-      printf("READ operation failed.\n");
-      return -1;
-    }
+  if(currg == NULL || cur_vma == NULL )
+  {
+    printf("Invalid address: region not found. READ operation failed.\n");
+    return -1;
+  }
+
+  if(currg->rg_start + offset >= currg->rg_end)
+  {
+    printf("Invalid address: out of bound. READ operation failed.\n");
+    return -1;
+  }
 
   pg_getval(caller->mm, currg->rg_start + offset, data, caller);
 
@@ -356,12 +374,17 @@ int __write(struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
 
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
 
-  if(currg == NULL || cur_vma == NULL ||
-      currg->rg_start + offset >= currg->rg_end) /* Invalid memory identify */
-	  {
-      printf("WRITE operation failed.\n");
-      return -1;
-    }
+  if(currg == NULL || cur_vma == NULL )
+  {
+    printf("Invalid address: region not found. READ operation failed.\n");
+    return -1;
+  }
+
+  if(currg->rg_start + offset >= currg->rg_end)
+  {
+    printf("Invalid address: out of bound. READ operation failed.\n");
+    return -1;
+  }
 
   pg_setval(caller->mm, currg->rg_start + offset, value, caller);
 
@@ -375,6 +398,10 @@ int pgwrite(
 		uint32_t destination, // Index of destination register
 		uint32_t offset)
 {
+#ifdef DBG__
+	printf("[Operation]\tPID #%d:\tWRITE\n", proc->pid);
+#endif
+
 #ifdef IODUMP
   printf("write region=%d offset=%d value=%d\n", destination, offset, data);
 #ifdef PAGETBL_DUMP
@@ -505,21 +532,19 @@ int find_victim_page(struct mm_struct *mm, uint32_t ** retpte)
     printf("[ERROR] Empty free_pg_list!\n");
     return -1;
   }
-  // Collect last page from pg
-  int last_page = 1;
+
   while (pg->pg_next != NULL) {
     prev = pg;
     pg = pg->pg_next;
-    last_page = 0;
   }
   // Assign victim page number to return pointer
   
   // Check for last victim page condition
-  if (last_page) {
-    // Set page list to NULL
+  if (pg == mm->global_fifo_pgn->head) {
+    // If the list has only 1 page:
     mm->global_fifo_pgn->head = NULL;
-    // *(mm->global_fifo_pgn) = NULL;
   }
+
   if(prev != NULL)
     prev->pg_next = NULL;
   // free(pg);

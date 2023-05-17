@@ -1,54 +1,55 @@
 Time slot   0
 ld_routine
 	Loaded a process at input/proc/p1s, PID: 1 PRIO: 0
-Time slot   1
 	CPU 0: Dispatched process  1
+[Operation]	PID #1:	CALC
+Time slot   1
 [Operation]	PID #1:	CALC
 	Loaded a process at input/proc/p2s, PID: 2 PRIO: 1
 Time slot   2
-[Operation]	PID #1:	CALC
+	Loaded a process at input/proc/p3s, PID: 3 PRIO: 2
 	CPU 1: Dispatched process  2
 [Operation]	PID #2:	CALC
-	Loaded a process at input/proc/p3s, PID: 3 PRIO: 2
+[Operation]	PID #1:	CALC
 Time slot   3
-[Operation]	PID #1:	CALC
 [Operation]	PID #2:	CALC
+[Operation]	PID #1:	CALC
 Time slot   4
-[Operation]	PID #1:	CALC
-[Operation]	PID #2:	CALC
-Time slot   5
 [Operation]	PID #2:	CALC
 	CPU 0: Put process  1 to run queue
 	CPU 0: Dispatched process  1
 [Operation]	PID #1:	CALC
+Time slot   5
+[Operation]	PID #2:	CALC
+[Operation]	PID #1:	CALC
 Time slot   6
+[Operation]	PID #1:	CALC
 	CPU 1: Put process  2 to run queue
 	CPU 1: Dispatched process  2
 [Operation]	PID #2:	CALC
-[Operation]	PID #1:	CALC
 Time slot   7
 [Operation]	PID #2:	CALC
 [Operation]	PID #1:	CALC
 Time slot   8
 [Operation]	PID #2:	CALC
-[Operation]	PID #1:	CALC
-Time slot   9
 	CPU 0: Put process  1 to run queue
 	CPU 0: Dispatched process  1
 [Operation]	PID #1:	CALC
+Time slot   9
 [Operation]	PID #2:	CALC
-Time slot  10
 [Operation]	PID #1:	CALC
+Time slot  10
 	CPU 1: Put process  2 to run queue
 	CPU 1: Dispatched process  2
 [Operation]	PID #2:	CALC
-Time slot  11
-[Operation]	PID #2:	CALC
 [Operation]	PID #1:	CALC
-Time slot  12
+Time slot  11
 [Operation]	PID #2:	CALC
 	CPU 0: Processed  1 has finished
 	CPU 0: Dispatched process  3
+[Operation]	PID #3:	CALC
+Time slot  12
+[Operation]	PID #2:	CALC
 [Operation]	PID #3:	CALC
 Time slot  13
 [Operation]	PID #2:	CALC
@@ -60,42 +61,40 @@ Time slot  14
 [Operation]	PID #3:	CALC
 Time slot  15
 	CPU 1: Processed  2 has finished
+	CPU 0: Put process  3 to run queue
+	CPU 0: Dispatched process  3
 [Operation]	PID #3:	CALC
 	CPU 1 stopped
 Time slot  16
-	CPU 0: Put process  3 to run queue
-	CPU 0: Dispatched process  3
 [Operation]	PID #3:	CALC
 Time slot  17
 [Operation]	PID #3:	CALC
 Time slot  18
 [Operation]	PID #3:	CALC
 Time slot  19
-[Operation]	PID #3:	CALC
-Time slot  20
 	CPU 0: Put process  3 to run queue
 	CPU 0: Dispatched process  3
+[Operation]	PID #3:	CALC
+Time slot  20
 [Operation]	PID #3:	CALC
 Time slot  21
 [Operation]	PID #3:	CALC
 Time slot  22
 [Operation]	PID #3:	CALC
 Time slot  23
-[Operation]	PID #3:	CALC
-Time slot  24
 	CPU 0: Put process  3 to run queue
 	CPU 0: Dispatched process  3
+[Operation]	PID #3:	CALC
+Time slot  24
 [Operation]	PID #3:	CALC
 Time slot  25
 [Operation]	PID #3:	CALC
 Time slot  26
 [Operation]	PID #3:	CALC
 Time slot  27
-[Operation]	PID #3:	CALC
-Time slot  28
 	CPU 0: Put process  3 to run queue
 	CPU 0: Dispatched process  3
 [Operation]	PID #3:	CALC
-Time slot  29
+Time slot  28
 	CPU 0: Processed  3 has finished
 	CPU 0 stopped

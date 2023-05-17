@@ -4,13 +4,16 @@
 #include <stdio.h>
 
 int calc(struct pcb_t * proc) {
-#ifdef DBG__
+#ifdef GANTT__
 	printf("[Operation]\tPID #%d:\tCALC\n", proc->pid);
 #endif	
 	return ((unsigned long)proc & 0UL);
 }
 
 int alloc(struct pcb_t * proc, uint32_t size, uint32_t reg_index) {
+#ifdef GANTT__
+	printf("[Operation]\tPID #%d:\tALLOC\n", proc->pid);
+#endif	
 	addr_t addr = alloc_mem(size, proc);
 	if (addr == 0) {
 		return 1;
@@ -21,6 +24,9 @@ int alloc(struct pcb_t * proc, uint32_t size, uint32_t reg_index) {
 }
 
 int free_data(struct pcb_t * proc, uint32_t reg_index) {
+#ifdef GANTT__
+	printf("[Operation]\tPID #%d:\tFREE\n", proc->pid);
+#endif
 	return free_mem(proc->regs[reg_index], proc);
 }
 
